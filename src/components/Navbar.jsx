@@ -29,9 +29,7 @@ const Navbar = () => {
       <Toolbar sx={{ justifyContent: 'space-between' }}>
         {/* Logo on the left */}
         <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-      {/* "Tour" part with theme color using sx */}
       <span sx={{ color: theme => theme.palette.primary.light }}>Tour</span>
-      {/* "Bay" part remains default */}
       <span>Bay</span>
     </Typography>
 
@@ -40,11 +38,13 @@ const Navbar = () => {
           sx={{
             display: { xs: 'none', md: 'flex' }, // Hidden on small screens
             gap: 3,
+            
           }}
         >
           <RouterLink to="/addTour" color="inherit" underline="none"  style={{
         textDecoration: 'none', // Remove underline
         color: 'inherit',       // Inherit color from Button
+        
       }}>
             Add Tour
           </RouterLink>
@@ -64,7 +64,7 @@ const Navbar = () => {
 
         {/* Explore Now button for larger screens */}
         <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-          <Button variant="contained"  sx={{ textTransform: 'none',backgroundColor:theme => theme.palette.primary.light, ":hover": {
+          <Button variant="contained"  sx={{zIndex:"2", textTransform: 'none',backgroundColor:theme => theme.palette.primary.light, ":hover": {
         backgroundColor:theme => theme.palette.primary.dark ,
       }, }}>
             <RouterLink  to="/exploreNow"   style={{
