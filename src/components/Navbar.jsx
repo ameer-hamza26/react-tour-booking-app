@@ -86,28 +86,41 @@ const Navbar = () => {
             sx={{ display: { xs: 'block', md: 'none' } }}
           >
             <MenuItem onClick={handleMenuClose}>
-              <Link href="#home" color="inherit" underline="none">
-                Home
-              </Link>
+            <RouterLink to="/addTour" color="inherit" underline="none"  style={{
+        textDecoration: 'none', // Remove underline
+        color: 'inherit',       // Inherit color from Button
+        
+      }}>
+            Add Tour
+          </RouterLink>
+         
             </MenuItem>
             <MenuItem onClick={handleMenuClose}>
-              <Link href="#about" color="inherit" underline="none">
-                About
-              </Link>
+            <RouterLink to="/bookTour" color="inherit" underline="none"  style={{
+        textDecoration: 'none', // Remove underline
+        color: 'inherit',       // Inherit color from Button
+      }}>
+            Book Tour
+          </RouterLink>
+         
             </MenuItem>
             <MenuItem onClick={handleMenuClose}>
-              <Link href="#services" color="inherit" underline="none">
-                Services
-              </Link>
+            <RouterLink to="/myTour" color="inherit" underline="none"  style={{
+        textDecoration: 'none', // Remove underline
+        color: 'inherit',       // Inherit color from Button
+      }}>
+            My Tour
+          </RouterLink>
             </MenuItem>
             <MenuItem onClick={handleMenuClose}>
-              <Button
-                variant="contained"
-                color="secondary"
-                sx={{ textTransform: 'none', width: '100%' }}
-              >
-                Explore Now
-              </Button>
+            <Button variant="contained"  sx={{zIndex:"2", textTransform: 'none',backgroundColor:theme => theme.palette.primary.light, ":hover": {
+        backgroundColor:theme => theme.palette.primary.dark ,
+      }, }}>
+            <RouterLink  to="/exploreNow"   style={{
+        textDecoration: 'none', // Remove underline
+        color: 'inherit',       // Inherit color from Button
+      }}>Explore Now</RouterLink>
+          </Button>
             </MenuItem>
           </Menu>
         </Box>

@@ -13,10 +13,48 @@
     position: relative;
     display: block;
     width: calc(220% + 10px);
-    height:550px;
+    height: 550px;
     transform: rotateY(180deg);
 }
 
 .custom-shape-divider-bottom-1732173359 .shape-fill {
     fill: #FFF3EA;
+}
+
+/* Media Queries for Responsiveness */
+
+/* For small devices (phones), max-width 600px */
+@media (max-width: 600px) {
+    .custom-shape-divider-bottom-1732173359 {
+        width: 100%; /* Full width for small devices */
+    }
+
+    .custom-shape-divider-bottom-1732173359 svg {
+        width: 100%; /* Make SVG fit the container */
+        height: 300px; /* Adjust the height for small devices */
+    }
+}
+
+/* For medium devices (tablets), 600px to 1024px */
+@media (min-width: 600px) and (max-width: 1024px) {
+    .custom-shape-divider-bottom-1732173359 {
+        width: 80%; /* Slightly reduce width on medium devices */
+    }
+
+    .custom-shape-divider-bottom-1732173359 svg {
+        width: 120%; /* Adjust SVG width for medium screens */
+        height: 400px; /* Adjust height for medium screens */
+    }
+}
+
+/* For large devices (desktops), min-width 1024px */
+@media (min-width: 1024px) {
+    .custom-shape-divider-bottom-1732173359 {
+        width: 50%; /* Default width for large screens */
+    }
+
+    .custom-shape-divider-bottom-1732173359 svg {
+        width: calc(220% + 10px); /* Maintain large width for larger screens */
+        height: 550px; /* Default height for larger screens */
+    }
 }

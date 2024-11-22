@@ -20,14 +20,14 @@ const HeroSection = () => {
         padding: { xs: 3, md: 6 },
       }}
     >
-      <Grid container spacing={10} alignItems="center" >
+      <Grid container spacing={{xs:0,md:10}} alignItems="center" >
         {/* Left Side */}
-        <Grid item xs={12} md={6} sx={{mt:-15}}>
-          <Typography variant="h3" component="h1" sx={{ fontWeight: 'bold', mb: 3 }}>
+        <Grid item xs={12} md={6} sx={{mt:{md:-15,xs:5}}}>
+          <Typography variant="h3" component="h1" sx={{ fontWeight: 'bold', mb: 3,fontSize:{xs:35,md:50} }}>
           Explore The New World 
           With Tourbay
           </Typography>
-          <Typography variant="body1" sx={{ mb: 4 }}>
+          <Typography variant="body1" sx={{ mb: {xs:0,md:4} }}>
           No matter where in the world you want to go, we
 can help get you there and make your tour a 
 stupendous memory.
