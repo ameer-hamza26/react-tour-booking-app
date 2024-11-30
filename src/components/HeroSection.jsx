@@ -6,20 +6,21 @@ import img3 from "../assets/images/rectangle 8.png"
 import { Link as RouterLink } from "react-router-dom";
 
 
+
 const HeroSection = () => {
   return (
     <Box
       sx={{
         minHeight: '100vh',
+
         display: 'flex',
         justifyContent:"space-between",
         alignItems: 'center',
         padding: { xs: 3, md: 6 },
       }}
     >
-      <Grid container spacing={10} alignItems="center">
-        {/* Left Side */}
-        <Grid item xs={12} md={6}>
+    <Grid container spacing={10} alignItems="center">
+ 
           <Typography variant="h3" component="h1" sx={{ fontWeight: 'bold', mb: 3 }}>
           Explore The New World 
           With Tourbay
@@ -42,7 +43,7 @@ stupendous memory.
         </Grid>
 
         {/* Right Side */}
-        <Grid item xs={12} md={6} sx={{ textAlign: 'center' }}>
+
           <Box
             sx={{
               display: 'flex',
@@ -93,6 +94,7 @@ stupendous memory.
             
           </Box>
         </Grid>
+
       </Grid>
     </Box>
   );
