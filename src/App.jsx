@@ -1,13 +1,26 @@
-// Import React and MUI components
 import React from 'react';
-import Navbar from './components/Navbar';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import HomePage from './pages/HomePage';
+import ExploreNow from './pages/ExploreNow';
+import AddTour from './pages/AddTour';
+import MyTour from './pages/MyTour';
+import BookTour from './pages/BookTour';
+import Navbar from './components/Navbar';  // Ensure you import Navbar
 
 const App = () => {
   return (
-      <>
-      <Navbar/>
-
-    </>
+    <Router>
+      {/* Navbar will be rendered on every page */}
+      <Navbar />
+      
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/exploreNow" element={<ExploreNow />} />
+        <Route path="/addTour" element={<AddTour />} />
+        <Route path="/bookTour" element={<BookTour />} />
+        <Route path="/myTour" element={<MyTour />} />
+      </Routes>
+    </Router>
   );
 };
 
