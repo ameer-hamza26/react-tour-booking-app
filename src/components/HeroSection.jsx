@@ -1,23 +1,28 @@
 import React from 'react';
 import { Box, Typography, Button, Grid } from '@mui/material';
-import img1 from '../assets/images/rectangle 6.png';
-import img2 from '../assets/images/rectangle 7.png';
-import img3 from '../assets/images/rectangle 8.png';
-import { Link as RouterLink } from 'react-router-dom';
+import img1 from "../assets/images/rectangle 6.png"
+import img2 from "../assets/images/rectangle 7.png"
+import img3 from "../assets/images/rectangle 8.png"
+import { Link as RouterLink } from "react-router-dom";
+import "../index.css" 
+
 
 const HeroSection = () => {
   return (
     <Box
       sx={{
         minHeight: '100vh',
+        // backgroundColor:"green",
+        // mt:-5,
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: { xs: 3, md: 6 },
       }}
     >
-      <Grid container spacing={10} alignItems="center">
-        <Grid item xs={12} md={6}>
+      <Grid container spacing={10} alignItems="center" >
+        {/* Left Side */}
+        <Grid item xs={12} md={6} sx={{mt:-15}}>
           <Typography variant="h3" component="h1" sx={{ fontWeight: 'bold', mb: 3 }}>
             Explore The New World
             With Tourbay
@@ -52,7 +57,11 @@ const HeroSection = () => {
         </Grid>
 
         {/* Right Side */}
-        <Grid item xs={12} md={6}>
+
+
+
+
+<Grid item xs={12} md={6} sx={{ textAlign: 'center',zIndex:"2",mt:{ xs: 3, md: 15 } }}>
           <Box
             sx={{
               display: 'flex',
@@ -102,6 +111,12 @@ const HeroSection = () => {
             </Box>
           </Box>
         </Grid>
+
+        <div class="custom-shape-divider-bottom-1732173359">
+    <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+        <path d="M1200 120L0 16.48 0 0 1200 0 1200 120z" class="shape-fill"></path>
+    </svg>
+</div>
       </Grid>
     </Box>
   );
