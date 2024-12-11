@@ -4,7 +4,7 @@ import HomePage from './pages/HomePage';
 import ExploreNow from './pages/ExploreNow';
 import AddTour from './pages/AddTour';
 import MyTour from './pages/MyTour';
-import BookTour from './pages/BookTour';
+import Tour from './pages/Tour';
 import Navbar from './components/Navbar';  // Ensure you import Navbar
 
 const App = () => {
@@ -17,7 +17,7 @@ const App = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/exploreNow" element={<ExploreNow />} />
         <Route path="/addTour" element={<AddTour />} />
-        <Route path="/bookTour" element={<BookTour />} />
+        <Route path="/tour" element={<Tour />} />
         <Route path="/myTour" element={<MyTour />} />
       </Routes>
     </Router>

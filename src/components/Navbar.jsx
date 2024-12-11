@@ -41,18 +41,18 @@ const Navbar = () => {
             
           }}
         >
-          <RouterLink to="/addTour" color="inherit" underline="none"  style={{
+          <RouterLink to="/tour" color="inherit" underline="none"  style={{
         textDecoration: 'none', // Remove underline
         color: 'inherit',       // Inherit color from Button
         
       }}>
-            Add Tour
+            Tour
           </RouterLink>
-          <RouterLink to="/bookTour" color="inherit" underline="none"  style={{
+          <RouterLink to="/addTour" color="inherit" underline="none"  style={{
         textDecoration: 'none', // Remove underline
         color: 'inherit',       // Inherit color from Button
       }}>
-            Book Tour
+            Add Tour
           </RouterLink>
           <RouterLink to="/myTour" color="inherit" underline="none"  style={{
         textDecoration: 'none', // Remove underline
