@@ -86,21 +86,21 @@ const Navbar = () => {
             sx={{ display: { xs: 'block', md: 'none' } }}
           >
             <MenuItem onClick={handleMenuClose}>
-            <RouterLink to="/addTour" color="inherit" underline="none"  style={{
+            <RouterLink to="/tour" color="inherit" underline="none"  style={{
         textDecoration: 'none', // Remove underline
         color: 'inherit',       // Inherit color from Button
         
       }}>
-            Add Tour
+             Tour
           </RouterLink>
          
             </MenuItem>
             <MenuItem onClick={handleMenuClose}>
-            <RouterLink to="/bookTour" color="inherit" underline="none"  style={{
+            <RouterLink to="/addTour" color="inherit" underline="none"  style={{
         textDecoration: 'none', // Remove underline
         color: 'inherit',       // Inherit color from Button
       }}>
-            Book Tour
+            add Tour
           </RouterLink>
          
             </MenuItem>
