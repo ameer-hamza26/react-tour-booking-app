@@ -6,6 +6,7 @@ import AddTour from './pages/AddTour';
 import MyTour from './pages/MyTour';
 import Tour from './pages/Tour';
 import Navbar from './components/Navbar';  // Ensure you import Navbar
+import TourDetailPage from './pages/TourDetailPage';
 
 const App = () => {
   return (
@@ -19,6 +20,7 @@ const App = () => {
         <Route path="/addTour" element={<AddTour />} />
         <Route path="/tour" element={<Tour />} />
         <Route path="/myTour" element={<MyTour />} />
+        <Route path="/tour/:tourId" element={<TourDetailPage />} />
       </Routes>
     </Router>
   );
