@@ -1,8 +1,8 @@
 import React from 'react';
 import { Box, Typography, Button, Grid } from '@mui/material';
-import img1 from "../assets/images/rectangle 6.png"
-import img2 from "../assets/images/rectangle 7.png"
-import img3 from "../assets/images/rectangle 8.png"
+import img1 from "../assets/images/Rectangle6.png"
+import img2 from "../assets/images/Rectangle7.png"
+import img3 from "../assets/images/Rectangle8.png"
 import { Link as RouterLink } from "react-router-dom";
 import "../index.css" 
 
