@@ -26,14 +26,12 @@
 /* For small devices (phones), max-width 600px */
 @media (max-width: 600px) {
     .custom-shape-divider-bottom-1732173359 {
-        width: -100%; /* Full width for small devices */
-        bottom: -13%;
-        transform: rotate(180deg);
+        width: 0%; /* Full width for small devices */
+        
     }
 
     .custom-shape-divider-bottom-1732173359 svg {
-        width: 200%; /* Make SVG fit the container */
-        height: 400px; /* Adjust the height for small devices */
+        width: 0%; /* Make SVG fit the container */
     }
 }
 
