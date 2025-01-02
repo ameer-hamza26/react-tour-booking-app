@@ -1,31 +1,25 @@
 import React from 'react';
-import { Box, Button, Typography, Grid,TextField } from '@mui/material';
+import { Box, Button, Typography, Grid } from '@mui/material';
 import { FaLocationDot } from "react-icons/fa6";
-import { MdOutlineDateRange } from "react-icons/md";
-import { MdPriceChange } from "react-icons/md";
-import ExploreImg from "../assets/images/ExploreImg.png"
+import { MdOutlineDateRange, MdPriceChange } from "react-icons/md";
+import ExploreImg from "../assets/images/ExploreImg.png";
 
 const ExploreNow = () => {
   return (
     <>
-    
-    <Box
-      sx={{
-        position: 'relative',
-        height: '60vh',
-        backgroundImage: `url(${ExploreImg})`, // Your background image
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
-    >
-      {/* Centered Content: Buttons for Location, Choose Data, Price Range */}
-     
+      {/* Background Section */}
+      <Box
+        sx={{
+          position: 'relative',
+          height: { xs: '40vh', md: '60vh' }, // Adjust height for small devices
+          backgroundImage: `url(${ExploreImg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      />
 
-     
-    </Box>
-
-    
-    <Box
+      {/* Button Section */}
+      <Box
         sx={{
           position: 'absolute',
           top: '72%',
@@ -33,92 +27,86 @@ const ExploreNow = () => {
           transform: 'translate(-50%, -50%)',
           textAlign: 'center',
           width: '100%',
+          padding: { xs: 2, md: 0 }, // Add padding for small devices
         }}
       >
-        
-
-        <Grid container spacing={6} justifyContent="center">
-          <Grid item>
-            <Button variant="contained" sx={{ padding:2,backgroundColor: theme=>theme.palette.primary.light }}>
-            <FaLocationDot style={{marginRight:5}}/> Location
+        <Grid container spacing={2} justifyContent="center">
+          <Grid item xs={12} sm="auto">
+            <Button
+              variant="contained"
+              sx={{
+                width: { xs: '100%', sm: 'auto' },
+                padding: 2,
+                backgroundColor: (theme) => theme.palette.primary.light,
+              }}
+            >
+              <FaLocationDot style={{ marginRight: 5 }} /> Location
             </Button>
           </Grid>
-          <Grid item>
-            <Button variant="contained" sx={{ padding:2,backgroundColor: theme=>theme.palette.primary.light }}>
-            <MdOutlineDateRange style={{marginRight:5}}/> Choose Data
-            {/* <TextField
-            // style={{width:50%}}
-            // label="Select Date"
-            type="date"
-            variant="outlined"
-            // fullWidth
-            // value={date}
-            // onChange={handleDateChange}
-            // InputLabelProps={{
-            //   shrink: true,
-            // }}
-          /> */}
-
+          <Grid item xs={12} sm="auto">
+            <Button
+              variant="contained"
+              sx={{
+                width: { xs: '100%', sm: 'auto' },
+                padding: 2,
+                backgroundColor: (theme) => theme.palette.primary.light,
+              }}
+            >
+              <MdOutlineDateRange style={{ marginRight: 5 }} /> Choose Date
             </Button>
           </Grid>
-          <Grid item>
-            <Button variant="contained" sx={{ padding:2,backgroundColor: theme=>theme.palette.primary.light }}>
-            <MdPriceChange style={{marginRight:5}}/>  Price Range
-            {/* <TextField
-            // label="Select Date"
-            type="number"
-            variant="outlined"
-            // fullWidth
-            // value={date}
-            // onChange={handleDateChange}
-            // InputLabelProps={{
-            //   shrink: true,
-            // }}
-          /> */}
-
+          <Grid item xs={12} sm="auto">
+            <Button
+              variant="contained"
+              sx={{
+                width: { xs: '100%', sm: 'auto' },
+                padding: 2,
+                backgroundColor: (theme) => theme.palette.primary.light,
+              }}
+            >
+              <MdPriceChange style={{ marginRight: 5 }} /> Price Range
             </Button>
-            {/* <TextField
-            label="Enter Price"
-            type="number"
-            variant="outlined"
-            fullWidth
-            value={price}
-            onChange={handlePriceChange}
-            InputProps={{
-              startAdornment: <span>$</span>, // Optional: Add a dollar sign before the price
-            }}
-          /> */}
           </Grid>
         </Grid>
       </Box>
 
-     {/* Country Buttons: 15 countries displayed as buttons */}
-
-     <Box
-     sx={{
-       position: 'absolute',
-       bottom: '-10%',
-       left: '50%',
-       transform: 'translateX(-50%)',
-       textAlign: 'center',
-       width: '70%',
-     }}
-   >
-    <h1>Popular Search</h1>
-     <Grid container spacing={2} justifyContent="center" sx={{ flexWrap: 'wrap' }}>
-       {[
-         'USA', 'Canada', 'Japan', 'Australia', 'Germany', 'France', 'Italy', 'Brazil', 'Mexico',
-         'India', 'China', 'Thailand', 'Turkey', 'Egypt','Pakistan','Malaysia','Korea'
-       ].map((country, index) => (
-         <Grid item key={index}>
-           <Button variant="outlined" sx={{ backgroundColor: '#fff', borderRadius: '20px' }}>
-             {country}
-           </Button>
-         </Grid>
-       ))}
-     </Grid>
-   </Box>
-   </>
+      {/* Popular Search Section */}
+      <Box
+        sx={{
+          position: 'absolute',
+          bottom: {xs:'-40%',md:"-10%"},
+          left: '50%',
+          transform: 'translateX(-50%)',
+          textAlign: 'center',
+          width: { xs: '90%', md: '70%' }, // Adjust width for small devices
+        }}
+      >
+        <Typography variant="h6" sx={{ fontSize: { xs: '1.2rem', md: '2rem' },mb:"1rem",fontWeight:"bold" }}>
+          Popular Search
+        </Typography>
+        <Grid container spacing={1} justifyContent="center">
+          {[
+            'USA', 'Canada', 'Japan', 'Australia', 'Germany', 'France', 'Italy', 'Brazil', 'Mexico',
+            'India', 'China', 'Thailand', 'Turkey', 'Egypt', 'Pakistan', 'Malaysia', 'Korea',
+          ].map((country, index) => (
+            <Grid item key={index} xs={4} sm="auto">
+              <Button
+                variant="outlined"
+                sx={{
+                  width: '100%', // Full width on small devices
+                  backgroundColor: '#fff',
+                  borderRadius: '20px',
+                  fontSize: { xs: '0.8rem', md: '1rem' }, // Adjust font size
+                  padding: { xs: 1, md: 2 }, // Adjust padding
+                }}
+              >
+                {country}
+              </Button>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+    </>
   );
 };
 

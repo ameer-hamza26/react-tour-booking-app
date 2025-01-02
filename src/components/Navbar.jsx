@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import MenuIcon from '@mui/icons-material/Menu';
-import Link from '@mui/material/Link';
 import { Link as RouterLink } from "react-router-dom";
+import { Typography } from '@mui/material';
+
 
 
 
@@ -28,10 +28,14 @@ const Navbar = () => {
     <AppBar position="static" elevation={0} sx={{ backgroundColor: '#fff',color:"black",mt:1 }}>
       <Toolbar sx={{ justifyContent: 'space-between' }}>
         {/* Logo on the left */}
-        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-      <span sx={{ color: theme => theme.palette.primary.light }}>Tour</span>
-      <span>Bay</span>
-    </Typography>
+        <RouterLink to="/" underline="none" style={{
+        textDecoration: 'none', // Remove underline
+        color: 'inherit',       // Inherit color from Button
+        fontSize:25,
+        fontWeight:"bold",
+      }} >
+      <Typography component="span" sx={{ color:theme => theme.palette.primary.light,fontSize:25,fontWeight:"bold",fontFamily:"-moz-initial", }}> Tour</Typography><Typography component="span" style={{ color: theme=> theme.palette.secondary.main,fontSize:25,fontWeight:"bold", }}>Bay </Typography>
+    </RouterLink>
 
         {/* Links in the middle for larger screens */}
         <Box
