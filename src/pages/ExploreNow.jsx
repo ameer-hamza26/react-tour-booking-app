@@ -74,7 +74,7 @@ const ExploreNow = () => {
       <Box
         sx={{
           position: 'absolute',
-          bottom: {xs:'-40%',md:"-10%"},
+          bottom: {xs:'-60%',sm:"-40%",md:"-10%"},
           left: '50%',
           transform: 'translateX(-50%)',
           textAlign: 'center',
