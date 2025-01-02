@@ -23,7 +23,7 @@ const HeroSection = () => {
       <Grid container spacing={10} alignItems="center" >
         {/* Left Side */}
         <Grid item xs={12} md={6} sx={{mt:2}}>
-          <Typography variant="h3" component="h1" sx={{ fontWeight: 'bold', mb: 3 }}>
+          <Typography variant="h3" component="h1" sx={{fontSize:{xs:"2.4rem",md:"3.7rem"}, fontWeight: 'bold', mb: 3 }}>
             Explore The New World
             With Tourbay
           </Typography>

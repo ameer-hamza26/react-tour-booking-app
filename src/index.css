@@ -1,45 +1,62 @@
 .custom-shape-divider-bottom-1732173359 {
     position: absolute;
-    bottom: 0;
+    
     left: 50%;
-    width: 100%; /* Full width to adapt on all screen sizes */
+    width: 50%;
     overflow: hidden;
     line-height: 0;
-    transform: translateX(-50%) rotate(180deg); /* Centered and flipped */
+    transform: rotate(180deg);
     z-index: 0;
 }
 
 .custom-shape-divider-bottom-1732173359 svg {
     position: relative;
     display: block;
-    width: 100%; /* Always fit the container */
-    height: auto; /* Maintain aspect ratio */
-    transform: rotateY(180deg); /* Flip horizontally */
+    width: calc(220% + 10px);
+    height: 550px;
+    transform: rotateY(180deg);
 }
 
 .custom-shape-divider-bottom-1732173359 .shape-fill {
-    fill: #FFF3EA; /* Shape color */
+    fill: #FFF3EA;
 }
 
 /* Media Queries for Responsiveness */
 
 /* For small devices (phones), max-width 600px */
 @media (max-width: 600px) {
+    .custom-shape-divider-bottom-1732173359 {
+        width: -100%; /* Full width for small devices */
+        bottom: -13%;
+        transform: rotate(180deg);
+    }
+
     .custom-shape-divider-bottom-1732173359 svg {
-        height: 30vh; /* Height scaled based on viewport */
+        width: 200%; /* Make SVG fit the container */
+        height: 400px; /* Adjust the height for small devices */
     }
 }
 
 /* For medium devices (tablets), 600px to 1024px */
 @media (min-width: 600px) and (max-width: 1024px) {
+    .custom-shape-divider-bottom-1732173359 {
+        width: 80%; /* Slightly reduce width on medium devices */
+    }
+
     .custom-shape-divider-bottom-1732173359 svg {
-        height: 40vh; /* Adjust height proportionately */
+        width: 120%; /* Adjust SVG width for medium screens */
+        height: 400px; /* Adjust height for medium screens */
     }
 }
 
 /* For large devices (desktops), min-width 1024px */
 @media (min-width: 1024px) {
+    .custom-shape-divider-bottom-1732173359 {
+        width: 50%; /* Default width for large screens */
+    }
+
     .custom-shape-divider-bottom-1732173359 svg {
-        height: 50vh; /* Default height for desktops */
+        width: calc(220% + 10px); /* Maintain large width for larger screens */
+        height: 550px; /* Default height for larger screens */
     }
 }
