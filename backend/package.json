@@ -1,0 +1,19 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "This is the backend of the Tour booking system",
+  "keywords": [
+    "nodejs",
+    "expressjs",
+    "reactjs",
+    "mongodb",
+    "JavaScript"
+  ],
+  "license": "ISC",
+  "author": "Ameer Hamza",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
