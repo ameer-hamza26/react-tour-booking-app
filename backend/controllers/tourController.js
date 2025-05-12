@@ -5,21 +5,12 @@ import Tour from '../model/Tour.js';
 // @access  Public
 export const getTours = async (req, res) => {
   try {
-    const { search, destination, minPrice, maxPrice, duration } = req.query;
+    const { location, minPrice, maxPrice, date } = req.query;
     let query = { isActive: true };
 
-    // Search functionality
-    if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { destination: { $regex: search, $options: 'i' } }
-      ];
-    }
-
-    // Filter by destination
-    if (destination) {
-      query.destination = { $regex: destination, $options: 'i' };
+    // Search by location
+    if (location) {
+      query.destination = { $regex: location, $options: 'i' };
     }
 
     // Filter by price range
@@ -29,9 +20,14 @@ export const getTours = async (req, res) => {
       if (maxPrice) query.price.$lte = Number(maxPrice);
     }
 
-    // Filter by duration
-    if (duration) {
-      query.duration = Number(duration);
+    // Filter by date
+    if (date) {
+      const searchDate = new Date(date);
+      query.startDates = {
+        $elemMatch: {
+          $gte: searchDate
+        }
+      };
     }
 
     const tours = await Tour.find(query)
@@ -43,9 +39,11 @@ export const getTours = async (req, res) => {
       data: tours
     });
   } catch (error) {
+    console.error('Error in getTours:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: 'Error fetching tours',
+      error: error.message
     });
   }
 };
