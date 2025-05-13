@@ -10,6 +10,7 @@ import Navbar from './components/Navbar';  // Ensure you import Navbar
 import TourDetailPage from './pages/TourDetailPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import NotFound from './pages/NotFound';
 import PrivateRoute from './components/PrivateRoute';
 
 const App = () => {
@@ -38,6 +39,9 @@ const App = () => {
               <MyTour />
             </PrivateRoute>
           } />
+
+          {/* 404 Route - This should be the last route */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
     </AuthProvider>
