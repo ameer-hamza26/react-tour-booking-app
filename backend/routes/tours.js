@@ -6,7 +6,7 @@ import {
   updateTour,
   deleteTour
 } from '../controllers/tourController.js';
-import { protect, authorize } from '../middleware/auth.js';
+import { protect, authorize } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
