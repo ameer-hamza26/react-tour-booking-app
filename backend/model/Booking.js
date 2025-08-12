@@ -16,9 +16,16 @@ const bookingSchema = new mongoose.Schema({
     required: true
   },
   numberOfPeople: {
-    type: Number,
-    required: true,
-    min: 1
+    adults: {
+      type: Number,
+      required: true,
+      min: 1
+    },
+    children: {
+      type: Number,
+      default: 0,
+      min: 0
+    }
   },
   totalPrice: {
     type: Number,
@@ -31,20 +38,45 @@ const bookingSchema = new mongoose.Schema({
   },
   paymentStatus: {
     type: String,
-    enum: ['pending', 'paid', 'refunded'],
+    enum: ['pending', 'paid', 'refunded', 'failed'],
     default: 'pending'
   },
+  paymentMethod: {
+    type: String,
+    enum: ['credit_card', 'paypal', 'bank_transfer'],
+    required: true
+  },
   specialRequests: {
-    type: String
+    type: String,
+    trim: true
+  },
+  contactInfo: {
+    phone: {
+      type: String,
+      required: true
+    },
+    email: {
+      type: String,
+      required: true
+    }
+  },
+  cancellationReason: {
+    type: String,
+    trim: true
+  },
+  refundAmount: {
+    type: Number,
+    default: 0
   }
 }, {
   timestamps: true
 });
 
-// Index for better query performance
-bookingSchema.index({ user: 1, tour: 1 });
-bookingSchema.index({ status: 1 });
-bookingSchema.index({ startDate: 1 });
+// Add indexes for better query performance
+bookingSchema.index({ user: 1, createdAt: -1 });
+bookingSchema.index({ tour: 1, startDate: 1 });
+bookingSchema.index({ status: 1, paymentStatus: 1 });
 
 const Booking = mongoose.model('Booking', bookingSchema);
+
 export default Booking; 

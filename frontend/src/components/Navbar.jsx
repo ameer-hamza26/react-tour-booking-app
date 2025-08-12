@@ -1,20 +1,36 @@
 import React, { useState } from 'react';
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import Button from '@mui/material/Button';
-import Box from '@mui/material/Box';
-import IconButton from '@mui/material/IconButton';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import MenuIcon from '@mui/icons-material/Menu';
-import { Link as RouterLink } from "react-router-dom";
-import { Typography } from '@mui/material';
-
-
-
+import {
+  AppBar,
+  Toolbar,
+  Button,
+  Box,
+  IconButton,
+  Menu,
+  MenuItem,
+  Typography,
+  Avatar,
+  Divider,
+  Chip
+} from '@mui/material';
+import {
+  Menu as MenuIcon,
+  AccountCircle as AccountIcon,
+  Dashboard as DashboardIcon,
+  Tour as TourIcon,
+  BookOnline as BookingIcon,
+  People as UserIcon,
+  Logout as LogoutIcon,
+  Person as PersonIcon,
+  AdminPanelSettings as AdminIcon
+} from '@mui/icons-material';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
+  const [userMenuAnchorEl, setUserMenuAnchorEl] = useState(null);
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -24,110 +40,305 @@ const Navbar = () => {
     setAnchorEl(null);
   };
 
+  const handleUserMenuOpen = (event) => {
+    setUserMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleUserMenuClose = () => {
+    setUserMenuAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    logout();
+    handleUserMenuClose();
+    navigate('/');
+  };
+
+  const isAdmin = user?.role === 'admin';
+
   return (
-    <AppBar position="static" elevation={0} sx={{ backgroundColor: '#fff',color:"black",mt:1 }}>
-      <Toolbar sx={{ justifyContent: 'space-between' }}>
-        {/* Logo on the left */}
-        <RouterLink to="/" underline="none" style={{
-        textDecoration: 'none', // Remove underline
-        color: 'inherit',       // Inherit color from Button
-        fontSize:25,
-        fontWeight:"bold",
-      }} >
-      <Typography component="span" sx={{ color:theme => theme.palette.primary.light,fontSize:25,fontWeight:"bold",fontFamily:"-moz-initial", }}> Tour</Typography><Typography component="span" style={{ color: theme=> theme.palette.secondary.main,fontSize:25,fontWeight:"bold", }}>Bay </Typography>
-    </RouterLink>
-
-        {/* Links in the middle for larger screens */}
-        <Box
-          sx={{
-            display: { xs: 'none', md: 'flex' }, // Hidden on small screens
-            gap: 3,
-            
-          }}
-        >
-          <RouterLink to="/tour" color="inherit" underline="none"  style={{
-        textDecoration: 'none', // Remove underline
-        color: 'inherit',       // Inherit color from Button
-        
-      }}>
+    <AppBar position="static" elevation={1} sx={{ backgroundColor: '#fff', color: 'text.primary' }}>
+      <Toolbar sx={{ justifyContent: 'space-between', minHeight: 70 }}>
+        {/* Logo */}
+        <RouterLink to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <Typography 
+            component="span" 
+            sx={{ 
+              color: 'primary.main',
+              fontSize: 28,
+              fontWeight: 'bold',
+              fontFamily: 'inherit'
+            }}
+          >
             Tour
+          </Typography>
+          <Typography 
+            component="span" 
+            sx={{ 
+              color: 'secondary.main',
+              fontSize: 28,
+              fontWeight: 'bold',
+              fontFamily: 'inherit'
+            }}
+          >
+            Bay
+          </Typography>
+        </RouterLink>
+
+        {/* Navigation Links - Desktop */}
+        <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 3, alignItems: 'center' }}>
+          <RouterLink to="/tour" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <Button color="inherit" sx={{ textTransform: 'none', fontWeight: 500 }}>
+              Tours
+            </Button>
           </RouterLink>
-          <RouterLink to="/addTour" color="inherit" underline="none"  style={{
-        textDecoration: 'none', // Remove underline
-        color: 'inherit',       // Inherit color from Button
-      }}>
-            Add Tour
+          
+          <RouterLink to="/exploreNow" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <Button color="inherit" sx={{ textTransform: 'none', fontWeight: 500 }}>
+              Explore
+            </Button>
           </RouterLink>
-          <RouterLink to="/myTour" color="inherit" underline="none"  style={{
-        textDecoration: 'none', // Remove underline
-        color: 'inherit',       // Inherit color from Button
-      }}>
-            My Tour
-          </RouterLink>
+
+          {user && (
+            <>
+              <RouterLink to="/myTour" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <Button color="inherit" sx={{ textTransform: 'none', fontWeight: 500 }}>
+                  My Tours
+                </Button>
+              </RouterLink>
+              
+              <RouterLink to="/bookings" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <Button color="inherit" sx={{ textTransform: 'none', fontWeight: 500 }}>
+                  My Bookings
+                </Button>
+              </RouterLink>
+            </>
+          )}
+
+          {isAdmin && (
+            <RouterLink to="/admin" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <Button 
+                color="inherit" 
+                sx={{ 
+                  textTransform: 'none', 
+                  fontWeight: 500,
+                  backgroundColor: 'primary.main',
+                  color: 'white',
+                  '&:hover': {
+                    backgroundColor: 'primary.dark'
+                  }
+                }}
+                startIcon={<AdminIcon />}
+              >
+                Admin
+              </Button>
+            </RouterLink>
+          )}
         </Box>
 
-        {/* Explore Now button for larger screens */}
-        <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-          <Button variant="contained"  sx={{zIndex:"2", textTransform: 'none',backgroundColor:theme => theme.palette.primary.light, ":hover": {
-        backgroundColor:theme => theme.palette.primary.dark ,
-      }, }}>
-            <RouterLink  to="/exploreNow"   style={{
-        textDecoration: 'none', // Remove underline
-        color: 'inherit',       // Inherit color from Button
-      }}>Explore Now</RouterLink>
-          </Button>
+        {/* User Menu / Auth Buttons - Desktop */}
+        <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 2 }}>
+          {user ? (
+            <>
+              <Chip
+                icon={isAdmin ? <AdminIcon /> : <PersonIcon />}
+                label={isAdmin ? 'Admin' : 'User'}
+                color={isAdmin ? 'error' : 'primary'}
+                size="small"
+                variant="outlined"
+              />
+              <IconButton
+                onClick={handleUserMenuOpen}
+                sx={{ p: 0 }}
+              >
+                <Avatar sx={{ width: 40, height: 40, bgcolor: 'primary.main' }}>
+                  {user.firstName ? user.firstName[0] : user.email[0]}
+                </Avatar>
+              </IconButton>
+            </>
+          ) : (
+            <>
+              <RouterLink to="/login" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <Button color="inherit" sx={{ textTransform: 'none' }}>
+                  Login
+                </Button>
+              </RouterLink>
+              <RouterLink to="/register" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <Button 
+                  variant="contained" 
+                  sx={{ 
+                    textTransform: 'none',
+                    backgroundColor: 'primary.main',
+                    '&:hover': {
+                      backgroundColor: 'primary.dark'
+                    }
+                  }}
+                >
+                  Sign Up
+                </Button>
+              </RouterLink>
+            </>
+          )}
         </Box>
 
-        {/* Hamburger menu for small screens */}
+        {/* Mobile Menu Button */}
         <Box sx={{ display: { xs: 'block', md: 'none' } }}>
           <IconButton color="inherit" onClick={handleMenuOpen}>
             <MenuIcon />
           </IconButton>
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-            sx={{ display: { xs: 'block', md: 'none' } }}
-          >
-            <MenuItem onClick={handleMenuClose}>
-            <RouterLink to="/tour" color="inherit" underline="none"  style={{
-        textDecoration: 'none', // Remove underline
-        color: 'inherit',       // Inherit color from Button
-        
-      }}>
-             Tour
-          </RouterLink>
-         
-            </MenuItem>
-            <MenuItem onClick={handleMenuClose}>
-            <RouterLink to="/addTour" color="inherit" underline="none"  style={{
-        textDecoration: 'none', // Remove underline
-        color: 'inherit',       // Inherit color from Button
-      }}>
-            add Tour
-          </RouterLink>
-         
-            </MenuItem>
-            <MenuItem onClick={handleMenuClose}>
-            <RouterLink to="/myTour" color="inherit" underline="none"  style={{
-        textDecoration: 'none', // Remove underline
-        color: 'inherit',       // Inherit color from Button
-      }}>
-            My Tour
-          </RouterLink>
-            </MenuItem>
-            <MenuItem onClick={handleMenuClose}>
-            <Button variant="contained"  sx={{zIndex:"2", textTransform: 'none',backgroundColor:theme => theme.palette.primary.light, ":hover": {
-        backgroundColor:theme => theme.palette.primary.dark ,
-      }, }}>
-            <RouterLink  to="/exploreNow"   style={{
-        textDecoration: 'none', // Remove underline
-        color: 'inherit',       // Inherit color from Button
-      }}>Explore Now</RouterLink>
-          </Button>
-            </MenuItem>
-          </Menu>
         </Box>
+
+        {/* Mobile Menu */}
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleMenuClose}
+          sx={{ display: { xs: 'block', md: 'none' } }}
+        >
+          <MenuItem onClick={handleMenuClose}>
+            <RouterLink to="/tour" style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}>
+              <Button fullWidth sx={{ justifyContent: 'flex-start', textTransform: 'none' }}>
+                Tours
+              </Button>
+            </RouterLink>
+          </MenuItem>
+          
+          <MenuItem onClick={handleMenuClose}>
+            <RouterLink to="/exploreNow" style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}>
+              <Button fullWidth sx={{ justifyContent: 'flex-start', textTransform: 'none' }}>
+                Explore
+              </Button>
+            </RouterLink>
+          </MenuItem>
+
+          {user && (
+            <>
+              <MenuItem onClick={handleMenuClose}>
+                <RouterLink to="/myTour" style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}>
+                  <Button fullWidth sx={{ justifyContent: 'flex-start', textTransform: 'none' }}>
+                    My Tours
+                  </Button>
+                </RouterLink>
+              </MenuItem>
+              
+              <MenuItem onClick={handleMenuClose}>
+                <RouterLink to="/bookings" style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}>
+                  <Button fullWidth sx={{ justifyContent: 'flex-start', textTransform: 'none' }}>
+                    My Bookings
+                  </Button>
+                </RouterLink>
+              </MenuItem>
+            </>
+          )}
+
+          {isAdmin && (
+            <MenuItem onClick={handleMenuClose}>
+              <RouterLink to="/admin" style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}>
+                <Button 
+                  fullWidth 
+                  sx={{ 
+                    justifyContent: 'flex-start', 
+                    textTransform: 'none',
+                    backgroundColor: 'primary.main',
+                    color: 'white',
+                    '&:hover': {
+                      backgroundColor: 'primary.dark'
+                    }
+                  }}
+                  startIcon={<AdminIcon />}
+                >
+                  Admin Dashboard
+                </Button>
+              </RouterLink>
+            </MenuItem>
+          )}
+
+          {!user && (
+            <>
+              <Divider />
+              <MenuItem onClick={handleMenuClose}>
+                <RouterLink to="/login" style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}>
+                  <Button fullWidth sx={{ justifyContent: 'flex-start', textTransform: 'none' }}>
+                    Login
+                  </Button>
+                </RouterLink>
+              </MenuItem>
+              <MenuItem onClick={handleMenuClose}>
+                <RouterLink to="/register" style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}>
+                  <Button 
+                    fullWidth 
+                    variant="contained" 
+                    sx={{ 
+                      justifyContent: 'flex-start', 
+                      textTransform: 'none',
+                      backgroundColor: 'primary.main',
+                      '&:hover': {
+                        backgroundColor: 'primary.dark'
+                      }
+                    }}
+                  >
+                    Sign Up
+                  </Button>
+                </RouterLink>
+              </MenuItem>
+            </>
+          )}
+        </Menu>
+
+        {/* User Menu */}
+        <Menu
+          anchorEl={userMenuAnchorEl}
+          open={Boolean(userMenuAnchorEl)}
+          onClose={handleUserMenuClose}
+          PaperProps={{
+            sx: { minWidth: 200 }
+          }}
+        >
+          <MenuItem onClick={handleUserMenuClose}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+              <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
+                {user?.firstName ? user.firstName[0] : user?.email[0]}
+              </Avatar>
+              <Box>
+                <Typography variant="body2" fontWeight="medium">
+                  {user?.firstName} {user?.lastName}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {user?.email}
+                </Typography>
+              </Box>
+            </Box>
+          </MenuItem>
+          
+          <Divider />
+          
+          {isAdmin && (
+            <>
+              <MenuItem onClick={() => { navigate('/admin'); handleUserMenuClose(); }}>
+                <DashboardIcon sx={{ mr: 1 }} />
+                Admin Dashboard
+              </MenuItem>
+              <MenuItem onClick={() => { navigate('/admin/tours'); handleUserMenuClose(); }}>
+                <TourIcon sx={{ mr: 1 }} />
+                Manage Tours
+              </MenuItem>
+              <MenuItem onClick={() => { navigate('/admin/bookings'); handleUserMenuClose(); }}>
+                <BookingIcon sx={{ mr: 1 }} />
+                Manage Bookings
+              </MenuItem>
+              <MenuItem onClick={() => { navigate('/admin/users'); handleUserMenuClose(); }}>
+                <UserIcon sx={{ mr: 1 }} />
+                Manage Users
+              </MenuItem>
+              <Divider />
+            </>
+          )}
+          
+          <MenuItem onClick={handleLogout}>
+            <LogoutIcon sx={{ mr: 1 }} />
+            Logout
+          </MenuItem>
+        </Menu>
       </Toolbar>
     </AppBar>
   );

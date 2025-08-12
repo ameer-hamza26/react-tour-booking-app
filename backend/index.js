@@ -1,56 +1,79 @@
-import app from './app.js';
-import connectDB from './config/dbConnection.js';
+import express from 'express';
+import cors from 'cors';
 import dotenv from 'dotenv';
+import authRoutes from './routes/authRoutes.js';
+import tourRoutes from './routes/tours.js';
+import bookingRoutes from './routes/bookingRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+import connectDB from './config/dbConnection.js';
 
-// Load environment variables
 dotenv.config();
 
+const app = express();
+const PORT = process.env.PORT || 8080;
+
+// Middleware
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true
+}));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/tours', tourRoutes);
+app.use('/api/bookings', bookingRoutes);
+app.use('/api/admin', adminRoutes);
+
+// Health check
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    message: 'Server is running',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Route not found'
+  });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(err.statusCode || 500).json({
+    success: false,
+    message: err.message || 'Something went wrong!',
+    error: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
+});
+
+// Start server
 const startServer = async () => {
   try {
-    // Connect to MongoDB
     await connectDB();
-
-    // Try to start server on PORT, if busy try PORT + 1, and so on
-    const tryPort = async (port) => {
-      try {
-        await new Promise((resolve, reject) => {
-          const server = app.listen(port, () => {
-            console.log(`Server is running on port ${port}`);
-            console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-            resolve();
-          });
-
-          server.on('error', (error) => {
-            if (error.code === 'EADDRINUSE') {
-              console.log(`Port ${port} is busy, trying ${port + 1}...`);
-              reject(error);
-            } else {
-              reject(error);
-            }
-          });
-        });
-      } catch (error) {
-        if (error.code === 'EADDRINUSE') {
-          await tryPort(port + 1);
-        } else {
-          throw error;
-        }
-      }
-    };
-
-    await tryPort(process.env.PORT || 5000);
+    console.log('MongoDB connected successfully');
+    
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
   } catch (error) {
     console.error('Failed to start server:', error);
     process.exit(1);
   }
 };
 
-// Handle unhandled promise rejections
+// Handle unhandled rejections
 process.on('unhandledRejection', (err) => {
   console.error('Unhandled Promise Rejection:', err);
-  // Close server & exit process
   process.exit(1);
 });
 
-// Start the server
 startServer();
