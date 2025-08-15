@@ -17,9 +17,9 @@ router.use(adminProtect);
 
 // User management routes
 router.get('/users', getAllUsers);
+router.get('/users/stats', getUserStats);
 router.get('/users/:id', getUserById);
 router.patch('/users/:id', updateUser);
 router.delete('/users/:id', deleteUser);
-router.get('/users/stats', getUserStats);
 
 export default router; 

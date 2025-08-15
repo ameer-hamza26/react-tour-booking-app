@@ -1,6 +1,6 @@
-import Booking from '../model/Booking.js';
-import Tour from '../model/Tour.js';
-import User from '../model/User.js';
+import { Booking, Tour, User, TourImage } from '../model/index.js';
+import { Op } from 'sequelize';
+import sequelize from '../config/database.js';
 
 // @desc    Create booking
 // @route   POST /api/bookings
@@ -17,7 +17,9 @@ export const createBooking = async (req, res) => {
     } = req.body;
 
     // Check if tour exists and is active
-    const tour = await Tour.findOne({ _id: tourId, isActive: true });
+    const tour = await Tour.findOne({ 
+      where: { id: tourId, is_active: true } 
+    });
     if (!tour) {
       return res.status(404).json({
         success: false,
@@ -54,13 +56,15 @@ export const createBooking = async (req, res) => {
     }
 
     // Check if tour is available for the selected date
-    const existingBookings = await Booking.countDocuments({
-      tour: tourId,
-      startDate: bookingDate,
-      status: { $in: ['pending', 'confirmed'] }
+    const existingBookings = await Booking.count({
+      where: {
+        tour_id: tourId,
+        start_date: bookingDate,
+        status: { [Op.in]: ['pending', 'confirmed'] }
+      }
     });
 
-    if (existingBookings >= tour.maxGroupSize) {
+    if (existingBookings >= tour.max_group_size) {
       return res.status(400).json({
         success: false,
         message: 'Tour is fully booked for this date'
@@ -73,22 +77,16 @@ export const createBooking = async (req, res) => {
 
     // Create booking
     const booking = await Booking.create({
-      user: req.user.id,
-      tour: tourId,
-      startDate: bookingDate,
-      numberOfPeople,
-      totalPrice,
-      paymentMethod,
-      specialRequests,
-      contactInfo: {
-        ...contactInfo,
-        email: req.user.email // Ensure email matches user's email
-      }
-    });
-
-    // Add booking to user's bookings
-    await User.findByIdAndUpdate(req.user.id, {
-      $push: { bookings: booking._id }
+      user_id: req.user.id,
+      tour_id: tourId,
+      start_date: bookingDate,
+      adults: numberOfPeople.adults,
+      children: numberOfPeople.children,
+      total_price: totalPrice,
+      payment_method: paymentMethod,
+      special_requests: specialRequests,
+      contact_phone: contactInfo.phone,
+      contact_email: req.user.email // Ensure email matches user's email
     });
 
     res.status(201).json({
@@ -110,22 +108,37 @@ export const createBooking = async (req, res) => {
 export const getUserBookings = async (req, res) => {
   try {
     const { status, startDate, endDate } = req.query;
-    let query = { user: req.user.id };
+    let whereClause = { user_id: req.user.id };
 
     // Add filters if provided
     if (status) {
-      query.status = status;
+      whereClause.status = status;
     }
     if (startDate && endDate) {
-      query.startDate = {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate)
+      whereClause.start_date = {
+        [Op.between]: [new Date(startDate), new Date(endDate)]
       };
     }
 
-    const bookings = await Booking.find(query)
-      .populate('tour', 'title destination images price duration')
-      .sort({ createdAt: -1 });
+    const bookings = await Booking.findAll({
+      where: whereClause,
+      include: [
+        {
+          model: Tour,
+          as: 'tour',
+          attributes: ['title', 'destination', 'price', 'duration'],
+          include: [
+            {
+              model: TourImage,
+              as: 'images',
+              attributes: ['url'],
+              limit: 1
+            }
+          ]
+        }
+      ],
+      order: [['created_at', 'DESC']]
+    });
 
     res.json({
       success: true,
@@ -145,9 +158,27 @@ export const getUserBookings = async (req, res) => {
 // @access  Private
 export const getBooking = async (req, res) => {
   try {
-    const booking = await Booking.findById(req.params.id)
-      .populate('tour', 'title destination images price duration maxGroupSize')
-      .populate('user', 'firstName lastName email');
+    const booking = await Booking.findByPk(req.params.id, {
+      include: [
+        {
+          model: Tour,
+          as: 'tour',
+          attributes: ['title', 'destination', 'price', 'duration', 'max_group_size'],
+          include: [
+            {
+              model: TourImage,
+              as: 'images',
+              attributes: ['url']
+            }
+          ]
+        },
+        {
+          model: User,
+          as: 'user',
+          attributes: ['first_name', 'last_name', 'email']
+        }
+      ]
+    });
 
     if (!booking) {
       return res.status(404).json({
@@ -157,7 +188,7 @@ export const getBooking = async (req, res) => {
     }
 
     // Check if user owns the booking or is admin
-    if (booking.user._id.toString() !== req.user.id && req.user.role !== 'admin') {
+    if (booking.user_id !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to access this booking'
@@ -182,7 +213,7 @@ export const getBooking = async (req, res) => {
 export const updateBookingStatus = async (req, res) => {
   try {
     const { status, paymentStatus, cancellationReason, refundAmount } = req.body;
-    const booking = await Booking.findById(req.params.id);
+    const booking = await Booking.findByPk(req.params.id);
 
     if (!booking) {
       return res.status(404).json({
@@ -207,17 +238,23 @@ export const updateBookingStatus = async (req, res) => {
     }
 
     // Update booking
-    const updateData = { status, paymentStatus };
+    const updateData = { status, payment_status: paymentStatus };
     if (status === 'cancelled') {
-      updateData.cancellationReason = cancellationReason;
-      updateData.refundAmount = refundAmount;
+      updateData.cancellation_reason = cancellationReason;
+      updateData.refund_amount = refundAmount;
     }
 
-    const updatedBooking = await Booking.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true, runValidators: true }
-    ).populate('tour', 'title destination');
+    await booking.update(updateData);
+
+    const updatedBooking = await Booking.findByPk(booking.id, {
+      include: [
+        {
+          model: Tour,
+          as: 'tour',
+          attributes: ['title', 'destination']
+        }
+      ]
+    });
 
     res.json({
       success: true,
@@ -238,7 +275,7 @@ export const updateBookingStatus = async (req, res) => {
 export const cancelBooking = async (req, res) => {
   try {
     const { cancellationReason } = req.body;
-    const booking = await Booking.findById(req.params.id);
+    const booking = await Booking.findByPk(req.params.id);
 
     if (!booking) {
       return res.status(404).json({
@@ -248,7 +285,7 @@ export const cancelBooking = async (req, res) => {
     }
 
     // Check if user owns the booking or is admin
-    if (booking.user.toString() !== req.user.id && req.user.role !== 'admin') {
+    if (booking.user_id !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to cancel this booking'
@@ -264,24 +301,25 @@ export const cancelBooking = async (req, res) => {
     }
 
     // Calculate refund amount based on cancellation policy
-    const bookingDate = new Date(booking.startDate);
+    const bookingDate = new Date(booking.start_date);
     const today = new Date();
     const daysUntilTour = Math.ceil((bookingDate - today) / (1000 * 60 * 60 * 24));
     
     let refundAmount = 0;
     if (daysUntilTour > 30) {
-      refundAmount = booking.totalPrice * 0.9; // 90% refund
+      refundAmount = booking.total_price * 0.9; // 90% refund
     } else if (daysUntilTour > 15) {
-      refundAmount = booking.totalPrice * 0.7; // 70% refund
+      refundAmount = booking.total_price * 0.7; // 70% refund
     } else if (daysUntilTour > 7) {
-      refundAmount = booking.totalPrice * 0.5; // 50% refund
+      refundAmount = booking.total_price * 0.5; // 50% refund
     }
 
-    booking.status = 'cancelled';
-    booking.paymentStatus = 'refunded';
-    booking.cancellationReason = cancellationReason;
-    booking.refundAmount = refundAmount;
-    await booking.save();
+    await booking.update({
+      status: 'cancelled',
+      payment_status: 'refunded',
+      cancellation_reason: cancellationReason,
+      refund_amount: refundAmount
+    });
 
     res.json({
       success: true,
@@ -301,30 +339,28 @@ export const cancelBooking = async (req, res) => {
 // @access  Private/Admin
 export const getBookingStats = async (req, res) => {
   try {
-    const stats = await Booking.aggregate([
-      {
-        $group: {
-          _id: '$status',
-          count: { $sum: 1 },
-          totalRevenue: { $sum: '$totalPrice' }
-        }
-      }
-    ]);
+    const statusStats = await Booking.findAll({
+      attributes: [
+        'status',
+        [sequelize.fn('COUNT', sequelize.col('id')), 'count'],
+        [sequelize.fn('SUM', sequelize.col('total_price')), 'totalRevenue']
+      ],
+      group: ['status']
+    });
 
-    const paymentStats = await Booking.aggregate([
-      {
-        $group: {
-          _id: '$paymentStatus',
-          count: { $sum: 1 },
-          totalAmount: { $sum: '$totalPrice' }
-        }
-      }
-    ]);
+    const paymentStats = await Booking.findAll({
+      attributes: [
+        'payment_status',
+        [sequelize.fn('COUNT', sequelize.col('id')), 'count'],
+        [sequelize.fn('SUM', sequelize.col('total_price')), 'totalAmount']
+      ],
+      group: ['payment_status']
+    });
 
     res.json({
       success: true,
       data: {
-        statusStats: stats,
+        statusStats,
         paymentStats
       }
     });

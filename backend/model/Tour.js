@@ -1,60 +1,76 @@
-import mongoose from 'mongoose';
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/database.js';
 
-const tourSchema = new mongoose.Schema({
+const Tour = sequelize.define('Tour', {
+  id: {
+    type: DataTypes.BIGINT.UNSIGNED,
+    primaryKey: true,
+    autoIncrement: true
+  },
   title: {
-    type: String,
-    required: [true, 'Please provide a tour title'],
-    trim: true
+    type: DataTypes.STRING(255),
+    allowNull: false,
+    validate: {
+      notEmpty: { msg: 'Please provide a tour title' }
+    }
   },
   description: {
-    type: String,
-    required: [true, 'Please provide a description']
+    type: DataTypes.TEXT,
+    allowNull: false,
+    validate: {
+      notEmpty: { msg: 'Please provide a description' }
+    }
   },
   destination: {
-    type: String,
-    required: [true, 'Please provide a destination']
+    type: DataTypes.STRING(255),
+    allowNull: false,
+    validate: {
+      notEmpty: { msg: 'Please provide a destination' }
+    }
   },
   duration: {
-    type: Number,
-    required: [true, 'Please provide duration in days']
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    validate: {
+      notEmpty: { msg: 'Please provide duration in days' },
+      min: { args: [1], msg: 'Duration must be at least 1 day' }
+    }
   },
   price: {
-    type: Number,
-    required: [true, 'Please provide a price']
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+    validate: {
+      notEmpty: { msg: 'Please provide a price' },
+      min: { args: [0], msg: 'Price must be positive' }
+    }
   },
-  maxGroupSize: {
-    type: Number,
-    required: [true, 'Please provide maximum group size']
+  max_group_size: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    validate: {
+      notEmpty: { msg: 'Please provide maximum group size' },
+      min: { args: [1], msg: 'Group size must be at least 1' }
+    }
   },
-  images: [{
-    type: String
-  }],
-  startDates: [{
-    type: Date
-  }],
-  features: [{
-    type: String
-  }],
   rating: {
-    type: Number,
-    default: 0,
-    min: 0,
-    max: 5
+    type: DataTypes.DECIMAL(3, 1),
+    allowNull: false,
+    defaultValue: 0.0,
+    validate: {
+      min: { args: [0], msg: 'Rating must be at least 0' },
+      max: { args: [5], msg: 'Rating must be at most 5' }
+    }
   },
-  reviews: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Review'
-  }],
-  isActive: {
-    type: Boolean,
-    default: true
+  is_active: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: true
   }
 }, {
-  timestamps: true
+  tableName: 'tours',
+  timestamps: true,
+  createdAt: 'created_at',
+  updatedAt: 'updated_at'
 });
 
-// Index for better search performance
-tourSchema.index({ title: 'text', description: 'text', destination: 'text' });
-
-const Tour = mongoose.model('Tour', tourSchema);
 export default Tour; 

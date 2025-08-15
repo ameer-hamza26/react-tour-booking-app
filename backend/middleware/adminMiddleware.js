@@ -1,9 +1,9 @@
-import User from '../model/User.js';
+import { User } from '../model/index.js';
 
 export const adminProtect = async (req, res, next) => {
   try {
     // Check if user exists and has admin role
-    const user = await User.findById(req.user.id);
+    const user = await User.findByPk(req.user.id);
     
     if (!user) {
       return res.status(401).json({
