@@ -58,7 +58,7 @@ app.use((err, req, res, next) => {
 const startServer = async () => {
   try {
     await connectDB();
-    console.log('MongoDB connected successfully');
+    console.log('postgress connected successfully');
     
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);

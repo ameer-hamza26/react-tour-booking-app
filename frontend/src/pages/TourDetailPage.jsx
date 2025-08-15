@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import { Grid, Typography, Card, CardMedia, Box ,CardContent,Button} from '@mui/material';
+import { Grid, Typography, Card, CardMedia, Box ,CardContent,Button, Container } from '@mui/material';
 import img4 from "../assets/images/Rectangle9.png";
 import img5 from "../assets/images/Rectangle10.png";
 import img6 from "../assets/images/Rectangle11.png";
@@ -132,9 +132,9 @@ function TourDetailPage() {
   }
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+    <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
       {/* Tour Name */}
-      <Typography mb={5} variant="h4" gutterBottom align="center" style={{ color: '#2C3E50' }}>
+      <Typography sx={{ mb: 5 }} variant="h4" gutterBottom align="center" color="text.primary">
         {tour.name}
       </Typography>
 
@@ -156,17 +156,17 @@ function TourDetailPage() {
       </Grid>
 
       {/* Tour Description */}
-      <Box mt={4} sx={{ backgroundColor: '#f4f4f4', padding: '20px', borderRadius: '8px', boxShadow: 2 }}>
+      <Box mt={4} sx={{ bgcolor: 'background.default', p: 3, borderRadius: 2, boxShadow: 2 }}>
         <Typography variant="h6" color="primary" gutterBottom>
           About {tour.name}
         </Typography>
-        <Typography variant="body1" paragraph style={{ lineHeight: 1.6, color: '#34495E' }}>
+        <Typography variant="body1" paragraph sx={{ lineHeight: 1.7, color: 'text.secondary' }}>
           {tour.description}
         </Typography>
       </Box>
 
       {/* What's Included */}
-<Box mt={4} sx={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: 3, textAlign: 'center' }}>
+<Box mt={4} sx={{ bgcolor: 'background.paper', p: 3, borderRadius: 2, boxShadow: 3, textAlign: 'center' }}>
   <Typography variant="h6" color="primary" gutterBottom sx={{ fontWeight: 600, textTransform: 'uppercase' }}>
     What's Included
   </Typography>
@@ -174,16 +174,16 @@ function TourDetailPage() {
     {tour.included.map((item, index) => (
       <Grid item xs={12} sm={6} md={4} key={index}>
         <Box sx={{
-          backgroundColor: '#F0F4F8',
-          padding: '15px',
-          borderRadius: '10px',
-          boxShadow: 2,
+          bgcolor: 'grey.50',
+          p: 2,
+          borderRadius: 2,
+          boxShadow: 1,
           textAlign: 'center',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center'
         }}>
-          <Typography variant="body1" style={{ color: '#34495E', fontSize: '16px' }}>
+          <Typography variant="body1" sx={{ color: 'text.secondary', fontSize: 16 }}>
             {item}
           </Typography>
         </Box>
@@ -193,23 +193,23 @@ function TourDetailPage() {
 </Box>
 
 {/* Tour Destination, Departure, Return */}
-<Box mt={4} sx={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: 3 }}>
+<Box mt={4} sx={{ bgcolor: 'background.paper', p: 3, borderRadius: 2, boxShadow: 3 }}>
   <Typography variant="h6" color="primary" gutterBottom sx={{ fontWeight: 600 }}>
     Tour Details
   </Typography>
-  <Typography variant="body1" sx={{ color: '#34495E', fontSize: '16px' }}>
+  <Typography variant="body1" sx={{ color: 'text.secondary', fontSize: 16 }}>
     <strong>Destination:</strong> {tour.destination}
   </Typography>
-  <Typography variant="body1" sx={{ color: '#34495E', fontSize: '16px' }}>
+  <Typography variant="body1" sx={{ color: 'text.secondary', fontSize: 16 }}>
     <strong>Departure Location:</strong> {tour.departureLocation}
   </Typography>
-  <Typography variant="body1" sx={{ color: '#34495E', fontSize: '16px' }}>
+  <Typography variant="body1" sx={{ color: 'text.secondary', fontSize: 16 }}>
     <strong>Return Location:</strong> {tour.returnLocation}
   </Typography>
 </Box>
 
 {/* Itinerary */}
-<Box mt={4} sx={{ backgroundColor: '#F4F6F8', padding: '20px', borderRadius: '8px', boxShadow: 3 }}>
+<Box mt={4} sx={{ bgcolor: 'grey.50', p: 3, borderRadius: 2, boxShadow: 3 }}>
   <Typography variant="h6" color="primary" gutterBottom sx={{ fontWeight: 600 }}>
     Itinerary
   </Typography>
@@ -217,9 +217,9 @@ function TourDetailPage() {
     {tour.itinerary.map((item, index) => (
       <Grid item xs={12} sm={6} md={4} key={index}>
         <Card elevation={6} sx={{
-          borderRadius: '12px', 
-          backgroundColor: '#fff', 
-          padding: '15px', 
+          borderRadius: 2, 
+          bgcolor: 'background.paper', 
+          p: 2, 
           boxShadow: 3, 
           transition: 'transform 0.3s ease',
           '&:hover': { transform: 'scale(1.05)' }
@@ -228,16 +228,11 @@ function TourDetailPage() {
             <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
               {item.day}
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ color: '#34495E', fontSize: '14px' }}>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: 14 }}>
               {item.schedule}
             </Typography>
             {/* Temperature */}
-            <Typography variant="body2" sx={{
-              color: '#FF5722', 
-              fontSize: '14px', 
-              fontWeight: '500', 
-              marginTop: '10px'
-            }}>
+            <Typography variant="body2" color="warning.main" sx={{ fontSize: 14, fontWeight: 500, mt: 1.25 }}>
               <strong>Temperature: </strong>{item.temperature}°C
             </Typography>
           </CardContent>
@@ -247,27 +242,26 @@ function TourDetailPage() {
   </Grid>
 </Box>
 
-{/* Book Now Button */}
-<Box mt={4} sx={{ display: 'flex', justifyContent: 'center'}}>
-  <Button 
-    variant="contained" 
-    sx={{
-      padding: '12px 30px', 
-      borderRadius: '30px', 
-      fontSize: '16px', 
-      fontWeight: '600', 
-      boxShadow: 3, 
-      backgroundColor:theme => theme.palette.primary.light,
-      '&:hover': {
-        backgroundColor:theme => theme.palette.primary.dark }
-    }}
-  >
-    Book Now
-  </Button>
-</Box>
-
-
-    </div>
+      {/* Book Now Button */}
+      <Box mt={4} sx={{ display: 'flex', justifyContent: 'center'}}>
+        <Button 
+          variant="contained" 
+          sx={{
+            px: 3.5,
+            py: 1.25, 
+            borderRadius: 999, 
+            fontSize: 16, 
+            fontWeight: 600, 
+            boxShadow: 3, 
+            backgroundColor:theme => theme.palette.primary.light,
+            '&:hover': {
+              backgroundColor:theme => theme.palette.primary.dark }
+          }}
+        >
+          Book Now
+        </Button>
+      </Box>
+    </Container>
   );
 }
 

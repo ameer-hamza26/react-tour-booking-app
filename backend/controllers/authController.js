@@ -1,4 +1,4 @@
-import User from '../model/User.js';
+import { User } from '../model/index.js';
 import jwt from 'jsonwebtoken';
 import { validationResult } from 'express-validator';
 
@@ -25,7 +25,7 @@ export const register = async (req, res) => {
     const { firstName, lastName, email, password } = req.body;
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -35,20 +35,20 @@ export const register = async (req, res) => {
 
     // Create new user
     const user = await User.create({
-      firstName,
-      lastName,
+      first_name: firstName,
+      last_name: lastName,
       email,
       password
     });
 
     // Generate token
-    const token = generateToken(user._id);
+    const token = generateToken(user.id);
 
     // Remove password from response
     const userResponse = {
-      _id: user._id,
-      firstName: user.firstName,
-      lastName: user.lastName,
+      id: user.id,
+      first_name: user.first_name,
+      last_name: user.last_name,
       email: user.email,
       role: user.role
     };
@@ -88,7 +88,7 @@ export const login = async (req, res) => {
     }
 
     // Check if user exists
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ where: { email } });
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -106,13 +106,13 @@ export const login = async (req, res) => {
     }
 
     // Generate token
-    const token = generateToken(user._id);
+    const token = generateToken(user.id);
 
     // Remove password from response
     const userResponse = {
-      _id: user._id,
-      firstName: user.firstName,
-      lastName: user.lastName,
+      id: user.id,
+      first_name: user.first_name,
+      last_name: user.last_name,
       email: user.email,
       role: user.role
     };
@@ -139,7 +139,10 @@ export const login = async (req, res) => {
 // Get Current User
 export const getCurrentUser = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password');
+    const user = await User.findByPk(req.user.id, {
+      attributes: { exclude: ['password'] }
+    });
+    
     if (!user) {
       return res.status(404).json({
         success: false,

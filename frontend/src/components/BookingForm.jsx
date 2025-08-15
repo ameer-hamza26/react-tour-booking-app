@@ -390,8 +390,16 @@ const BookingForm = () => {
   };
 
   return (
-    <Container maxWidth="md">
-      <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
+    <Container maxWidth="md" sx={{ py: { xs: 4, md: 6 } }}>
+      <Paper elevation={0} sx={{ p: { xs: 3, md: 4 }, borderRadius: 3, boxShadow: '0 10px 30px rgba(0,0,0,0.08)' }}>
+        <Box sx={{ textAlign: 'center', mb: 2 }}>
+          <Typography variant="h4" fontWeight={700} color="text.primary" gutterBottom>
+            Book Your Tour
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Complete the steps below to confirm your booking.
+          </Typography>
+        </Box>
         <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
           {steps.map((label) => (
             <Step key={label}>
@@ -403,11 +411,12 @@ const BookingForm = () => {
         <form onSubmit={handleSubmit(onSubmit)}>
           {renderStepContent(activeStep)}
 
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4, gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
             <Button
               disabled={activeStep === 0}
               onClick={handleBack}
               variant="outlined"
+              sx={{ px: 3, py: 1.1, width: { xs: '100%', sm: 'auto' } }}
             >
               Back
             </Button>
@@ -417,6 +426,9 @@ const BookingForm = () => {
                 variant="contained"
                 disabled={!isValid || loading}
                 sx={{
+                  px: 3.5,
+                  py: 1.1,
+                  width: { xs: '100%', sm: 'auto' },
                   backgroundColor: theme => theme.palette.primary.light,
                   '&:hover': {
                     backgroundColor: theme => theme.palette.primary.dark
@@ -431,6 +443,9 @@ const BookingForm = () => {
                 onClick={handleNext}
                 disabled={!isValid}
                 sx={{
+                  px: 3.5,
+                  py: 1.1,
+                  width: { xs: '100%', sm: 'auto' },
                   backgroundColor: theme => theme.palette.primary.light,
                   '&:hover': {
                     backgroundColor: theme => theme.palette.primary.dark

@@ -7,8 +7,10 @@ import {
   Button,
   Typography,
   Box,
-  Alert
+  Alert,
+  InputAdornment
 } from '@mui/material';
+import { Email, Lock } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
@@ -39,12 +41,17 @@ const Login = () => {
   };
 
   return (
-    <Container maxWidth="sm">
-      <Box sx={{ mt: 8 }}>
-        <Paper elevation={3} sx={{ p: 4 }}>
-          <Typography variant="h4" align="center" gutterBottom>
-            Login
-          </Typography>
+    <Container maxWidth="sm" sx={{ minHeight: 'calc(100dvh - 120px)', display: 'flex', alignItems: 'center' }}>
+      <Box sx={{ width: '100%', my: { xs: 4, md: 6 } }}>
+        <Paper elevation={0} sx={{ p: { xs: 3, md: 4 }, borderRadius: 3, boxShadow: '0 10px 30px rgba(0,0,0,0.08)' }}>
+          <Box sx={{ textAlign: 'center', mb: 2 }}>
+            <Typography variant="h4" fontWeight={700} gutterBottom color="text.primary">
+              Welcome back
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Please sign in to continue.
+            </Typography>
+          </Box>
 
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -61,6 +68,13 @@ const Login = () => {
               onChange={(e) => setEmail(e.target.value)}
               margin="normal"
               required
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Email fontSize="small" sx={{ color: 'text.secondary' }} />
+                  </InputAdornment>
+                )
+              }}
             />
             <TextField
               fullWidth
@@ -70,6 +84,13 @@ const Login = () => {
               onChange={(e) => setPassword(e.target.value)}
               margin="normal"
               required
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Lock fontSize="small" sx={{ color: 'text.secondary' }} />
+                  </InputAdornment>
+                )
+              }}
             />
             <Button
               fullWidth
@@ -78,7 +99,7 @@ const Login = () => {
               color="primary"
               size="large"
               disabled={loading}
-              sx={{ mt: 3 }}
+              sx={{ mt: 3, py: 1.25 }}
             >
               {loading ? 'Logging in...' : 'Login'}
             </Button>
