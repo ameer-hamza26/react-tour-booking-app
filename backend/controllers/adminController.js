@@ -1,11 +1,14 @@
-import User from '../model/User.js';
-import Booking from '../model/Booking.js';
+import { User, Booking } from '../model/index.js';
 import { validationResult } from 'express-validator';
+import { Op } from 'sequelize';
 
 // Get all users (admin only)
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({}).select('-password').sort({ createdAt: -1 });
+    const users = await User.findAll({
+      attributes: { exclude: ['password'] },
+      order: [['created_at', 'DESC']]
+    });
 
     res.status(200).json({
       success: true,
@@ -24,7 +27,9 @@ export const getAllUsers = async (req, res) => {
 // Get user by ID (admin only)
 export const getUserById = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select('-password');
+    const user = await User.findByPk(req.params.id, {
+      attributes: { exclude: ['password'] }
+    });
     
     if (!user) {
       return res.status(404).json({
@@ -63,7 +68,7 @@ export const updateUser = async (req, res) => {
     const userId = req.params.id;
 
     // Check if user exists
-    const user = await User.findById(userId);
+    const user = await User.findByPk(userId);
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -73,7 +78,7 @@ export const updateUser = async (req, res) => {
 
     // Check if email is already taken by another user
     if (email && email !== user.email) {
-      const existingUser = await User.findOne({ email });
+      const existingUser = await User.findOne({ where: { email } });
       if (existingUser) {
         return res.status(400).json({
           success: false,
@@ -83,16 +88,16 @@ export const updateUser = async (req, res) => {
     }
 
     // Update user
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      {
-        firstName: firstName || user.firstName,
-        lastName: lastName || user.lastName,
-        email: email || user.email,
-        role: role || user.role
-      },
-      { new: true, runValidators: true }
-    ).select('-password');
+    await user.update({
+      first_name: firstName || user.first_name,
+      last_name: lastName || user.last_name,
+      email: email || user.email,
+      role: role || user.role
+    });
+
+    const updatedUser = await User.findByPk(userId, {
+      attributes: { exclude: ['password'] }
+    });
 
     res.status(200).json({
       success: true,
@@ -115,7 +120,7 @@ export const deleteUser = async (req, res) => {
     const userId = req.params.id;
 
     // Check if user exists
-    const user = await User.findById(userId);
+    const user = await User.findByPk(userId);
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -124,18 +129,18 @@ export const deleteUser = async (req, res) => {
     }
 
     // Prevent admin from deleting themselves
-    if (userId === req.adminUser._id.toString()) {
+    if (userId === req.adminUser.id.toString()) {
       return res.status(400).json({
         success: false,
         message: 'Cannot delete your own account'
       });
     }
 
-    // Delete user's bookings
-    await Booking.deleteMany({ user: userId });
+    // Delete user's bookings (cascade will handle this automatically)
+    await Booking.destroy({ where: { user_id: userId } });
 
     // Delete user
-    await User.findByIdAndDelete(userId);
+    await user.destroy();
 
     res.status(200).json({
       success: true,
@@ -154,14 +159,18 @@ export const deleteUser = async (req, res) => {
 // Get user statistics (admin only)
 export const getUserStats = async (req, res) => {
   try {
-    const totalUsers = await User.countDocuments();
-    const adminUsers = await User.countDocuments({ role: 'admin' });
-    const regularUsers = await User.countDocuments({ role: 'user' });
+    const totalUsers = await User.count();
+    const adminUsers = await User.count({ where: { role: 'admin' } });
+    const regularUsers = await User.count({ where: { role: 'user' } });
     
     // Get users created in last 30 days
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const newUsers = await User.countDocuments({ createdAt: { $gte: thirtyDaysAgo } });
+    const newUsers = await User.count({ 
+      where: { 
+        created_at: { [Op.gte]: thirtyDaysAgo } 
+      } 
+    });
 
     res.status(200).json({
       success: true,
