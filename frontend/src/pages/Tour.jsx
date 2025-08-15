@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardContent, CardMedia, Grid, Typography, Box, CircularProgress, Alert } from '@mui/material';
+import { Card, CardContent, CardMedia, Grid, Typography, Box, CircularProgress, Alert, Button, Container, Paper } from '@mui/material';
 import SearchTour from '../components/SearchTour';
 import { tourApi } from '../services/api';
 
@@ -63,13 +63,20 @@ function Tour() {
   }
 
   return (
-    <div style={{ padding: '0 16px' }}>
-      <Typography variant="h4" align="center" gutterBottom>
-        Tour Destinations
-      </Typography>
+    <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
+      <Box sx={{ textAlign: 'center', mb: 3 }}>
+        <Typography variant="h4" fontWeight={700} color="text.primary" gutterBottom>
+          Tour Destinations
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Find your perfect getaway from our curated list of tours.
+        </Typography>
+      </Box>
 
       {/* Search Component */}
-      <SearchTour onSearch={handleSearch} />
+      <Paper elevation={0} sx={{ p: 2, mb: 3, borderRadius: 3, boxShadow: '0 6px 18px rgba(0,0,0,0.06)' }}>
+        <SearchTour onSearch={handleSearch} />
+      </Paper>
 
       {/* Loading State */}
       {loading && (
@@ -88,27 +95,24 @@ function Tour() {
       {/* Tours Grid */}
       <Grid 
         container 
-        spacing={4}
+        spacing={3}
         justifyContent="center"
-        style={{
-          padding: '0 16px',
-        }}
       >
         {tours.map(tour => (
           <Grid item xs={12} sm={6} md={4} key={tour._id}>
-            <Card sx={{ height: '100%', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}>
-              <Link to={`/tour/${tour._id}`} style={{ textDecoration: 'none' }}>
+            <Card elevation={0} sx={{ height: '100%', borderRadius: 3, overflow: 'hidden', transition: 'transform 0.25s ease, box-shadow 0.25s ease', boxShadow: '0 8px 24px rgba(0,0,0,0.06)', '&:hover': { transform: 'translateY(-6px)', boxShadow: '0 12px 32px rgba(0,0,0,0.10)' } }}>
+              <Link to={`/tour/${tour._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                 <CardMedia
                   component="img"
-                  height="240"
-                  image={tour.images[0] || '/default-tour-image.jpg'}
+                  image={tour.images?.[0] || '/default-tour-image.jpg'}
                   alt={tour.title}
+                  sx={{ height: 220, objectFit: 'cover' }}
                 />
                 <CardContent>
-                  <Typography variant="h6" component="div" gutterBottom>
+                  <Typography variant="h6" component="div" gutterBottom noWrap>
                     {tour.title}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                     {tour.description}
                   </Typography>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -128,11 +132,11 @@ function Tour() {
 
       {/* No Results */}
       {!loading && tours.length === 0 && (
-        <Typography variant="h6" align="center" color="textSecondary" sx={{ mt: 4 }}>
+        <Typography variant="h6" align="center" color="text.secondary" sx={{ mt: 4 }}>
           No tours found matching your search criteria.
         </Typography>
       )}
-    </div>
+    </Container>
   );
 }
 

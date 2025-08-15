@@ -6,7 +6,7 @@ export const validateBooking = [
   body('tourId')
     .notEmpty()
     .withMessage('Tour ID is required')
-    .isMongoId()
+    .isInt({ min: 1 })
     .withMessage('Invalid tour ID'),
 
   // Start date validation
