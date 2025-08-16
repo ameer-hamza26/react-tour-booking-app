@@ -100,7 +100,7 @@ const Navbar = () => {
           </RouterLink>
 
           {user && (
-            <>
+            <div>
               <RouterLink to="/myTour" style={{ textDecoration: 'none', color: 'inherit' }}>
                 <Button color="inherit" sx={{ textTransform: 'none', fontWeight: 500 }}>
                   My Tours
@@ -112,7 +112,7 @@ const Navbar = () => {
                   My Bookings
                 </Button>
               </RouterLink>
-            </>
+            </div>
           )}
 
           {isAdmin && (
@@ -139,7 +139,7 @@ const Navbar = () => {
         {/* User Menu / Auth Buttons - Desktop */}
         <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 2 }}>
           {user ? (
-            <>
+            <div>
               <Chip
                 icon={isAdmin ? <AdminIcon /> : <PersonIcon />}
                 label={isAdmin ? 'Admin' : 'User'}
@@ -155,9 +155,9 @@ const Navbar = () => {
                   {user.firstName ? user.firstName[0] : user.email[0]}
                 </Avatar>
               </IconButton>
-            </>
+            </div>
           ) : (
-            <>
+            <div>
               <RouterLink to="/login" style={{ textDecoration: 'none', color: 'inherit' }}>
                 <Button color="inherit" sx={{ textTransform: 'none' }}>
                   Login
@@ -177,7 +177,7 @@ const Navbar = () => {
                   Sign Up
                 </Button>
               </RouterLink>
-            </>
+            </div>
           )}
         </Box>
 
@@ -212,7 +212,7 @@ const Navbar = () => {
           </MenuItem>
 
           {user && (
-            <>
+            <div>
               <MenuItem onClick={handleMenuClose}>
                 <RouterLink to="/myTour" style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}>
                   <Button fullWidth sx={{ justifyContent: 'flex-start', textTransform: 'none' }}>
@@ -228,7 +228,7 @@ const Navbar = () => {
                   </Button>
                 </RouterLink>
               </MenuItem>
-            </>
+            </div>
           )}
 
           {isAdmin && (
@@ -254,7 +254,7 @@ const Navbar = () => {
           )}
 
           {!user && (
-            <>
+            <div>
               <Divider />
               <MenuItem onClick={handleMenuClose}>
                 <RouterLink to="/login" style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}>
@@ -281,7 +281,7 @@ const Navbar = () => {
                   </Button>
                 </RouterLink>
               </MenuItem>
-            </>
+            </div>
           )}
         </Menu>
 
@@ -313,7 +313,7 @@ const Navbar = () => {
           <Divider />
           
           {isAdmin && (
-            <>
+            <div>
               <MenuItem onClick={() => { navigate('/admin'); handleUserMenuClose(); }}>
                 <DashboardIcon sx={{ mr: 1 }} />
                 Admin Dashboard
@@ -331,7 +331,7 @@ const Navbar = () => {
                 Manage Users
               </MenuItem>
               <Divider />
-            </>
+            </div>
           )}
           
           <MenuItem onClick={handleLogout}>

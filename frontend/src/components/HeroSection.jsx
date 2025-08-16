@@ -20,7 +20,7 @@ const HeroSection = () => {
         padding: { xs: 3, md: 6 },
       }}
     >
-      <Grid container spacing={10} alignItems="center" >
+      <Grid container spacing={10} alignItems="center" sx={{textAlign: 'center'}}>
         {/* Left Side */}
         <Grid item xs={12} md={6} sx={{mt:2}}>
           <Typography variant="h3" component="h1" sx={{fontSize:{xs:"1.6rem",md:"3.2rem"}, fontWeight: 'bold', mb: 3}}>
@@ -61,7 +61,7 @@ const HeroSection = () => {
 
 
 
-<Grid item xs={12} md={6} sx={{ textAlign: 'center',zIndex:"2",mt:{ xs: 3, md: 15 } }}>
+<Grid item xs={12} md={6} sx={{ zIndex:"2",mt:{ xs: 3, md: 15 } }}>
           <Box
             sx={{
               display: 'flex',
@@ -112,11 +112,11 @@ const HeroSection = () => {
           </Box>
         </Grid>
 
-        <div class="custom-shape-divider-bottom-1732173359">
-    <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-        <path d="M1200 120L0 16.48 0 0 1200 0 1200 120z" class="shape-fill"></path>
-    </svg>
-</div>
+        <div className="custom-shape-divider-bottom-1732173359">
+          <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path d="M1200 120L0 16.48 0 0 1200 0 1200 120z" className="shape-fill"></path>
+          </svg>
+        </div>
       </Grid>
     </Box>
   );
