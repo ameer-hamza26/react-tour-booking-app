@@ -99,7 +99,7 @@ const HomePage = () => {
 
       {/* CTA Section */}
       <Box sx={{ bgcolor: 'primary.main', color: 'white', py: 8 }}>
-        <Container maxWidth="md" textAlign="center">
+        <Container maxWidth="md" sx={{ textAlign: 'center' }}>
           <Typography variant="h3" component="h2" gutterBottom fontWeight="bold">
             Ready to Start Your Adventure?
           </Typography>
