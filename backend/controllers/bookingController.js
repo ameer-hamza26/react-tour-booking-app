@@ -58,7 +58,7 @@ export const createBooking = async (req, res) => {
     // Check if tour is available for the selected date
     const existingBookings = await Booking.count({
       where: {
-        tour_id: tourId,
+        tour_id: tourId,  
         start_date: bookingDate,
         status: { [Op.in]: ['pending', 'confirmed'] }
       }
@@ -107,9 +107,9 @@ export const createBooking = async (req, res) => {
 // @access  Private
 export const getUserBookings = async (req, res) => {
   try {
-    const { status, startDate, endDate } = req.query;
+    const { status, startDate, endDate, tourId } = req.query;
     let whereClause = { user_id: req.user.id };
-
+    // console.log('getUserBookings query:', req.query);
     // Add filters if provided
     if (status) {
       whereClause.status = status;
@@ -118,6 +118,10 @@ export const getUserBookings = async (req, res) => {
       whereClause.start_date = {
         [Op.between]: [new Date(startDate), new Date(endDate)]
       };
+    }
+    // Optional filter by tour if a valid ID is provided
+    if (tourId && !isNaN(Number(tourId))) {
+      whereClause.tour_id = Number(tourId);
     }
 
     const bookings = await Booking.findAll({
