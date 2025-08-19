@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   Container,
   Paper,
@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import { Email, Lock } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
+import AuthLayout from '../components/AuthLayout';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -41,72 +42,71 @@ const Login = () => {
   };
 
   return (
-    <Container maxWidth="sm" sx={{ minHeight: 'calc(100dvh - 120px)', display: 'flex', alignItems: 'center' }}>
-      <Box sx={{ width: '100%', my: { xs: 4, md: 6 } }}>
-        <Paper elevation={0} sx={{ p: { xs: 3, md: 4 }, borderRadius: 3, boxShadow: '0 10px 30px rgba(0,0,0,0.08)' }}>
-          <Box sx={{ textAlign: 'center', mb: 2 }}>
-            <Typography variant="h4" fontWeight={700} gutterBottom color="text.primary">
-              Welcome back
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Please sign in to continue.
-            </Typography>
-          </Box>
+    <AuthLayout title="Welcome back" subtitle="Please sign in to continue.">
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
 
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
+      <form onSubmit={handleSubmit} noValidate>
+        <TextField
+          fullWidth
+          label="Email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          margin="normal"
+          required
+          autoComplete="email"
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Email fontSize="small" sx={{ color: 'text.secondary' }} />
+              </InputAdornment>
+            )
+          }}
+        />
+        <TextField
+          fullWidth
+          label="Password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          margin="normal"
+          required
+          autoComplete="current-password"
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Lock fontSize="small" sx={{ color: 'text.secondary' }} />
+              </InputAdornment>
+            )
+          }}
+        />
 
-          <form onSubmit={handleSubmit}>
-            <TextField
-              fullWidth
-              label="Email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              margin="normal"
-              required
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Email fontSize="small" sx={{ color: 'text.secondary' }} />
-                  </InputAdornment>
-                )
-              }}
-            />
-            <TextField
-              fullWidth
-              label="Password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              margin="normal"
-              required
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Lock fontSize="small" sx={{ color: 'text.secondary' }} />
-                  </InputAdornment>
-                )
-              }}
-            />
-            <Button
-              fullWidth
-              type="submit"
-              variant="contained"
-              color="primary"
-              size="large"
-              disabled={loading}
-              sx={{ mt: 3, py: 1.25 }}
-            >
-              {loading ? 'Logging in...' : 'Login'}
-            </Button>
-          </form>
-        </Paper>
-      </Box>
-    </Container>
+        <Button
+          fullWidth
+          type="submit"
+          variant="contained"
+          color="primary"
+          size="large"
+          disabled={loading}
+          sx={{ mt: 3, py: 1.25 }}
+        >
+          {loading ? 'Logging in...' : 'Login'}
+        </Button>
+
+        <Box sx={{ mt: 2, textAlign: 'center' }}>
+          <Typography variant="body2">
+            Don't have an account?{' '}
+            <Link to="/register" style={{ textDecoration: 'none' }}>
+              Register here
+            </Link>
+          </Typography>
+        </Box>
+      </form>
+    </AuthLayout>
   );
 };
 
