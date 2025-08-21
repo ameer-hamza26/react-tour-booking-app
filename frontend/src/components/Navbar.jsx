@@ -303,7 +303,7 @@ const Navbar = () => {
                 <Typography variant="body2" fontWeight="medium">
                   {user?.firstName} {user?.lastName}
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant="caption" color="text.secondary"> 
                   {user?.email}
                 </Typography>
               </Box>
