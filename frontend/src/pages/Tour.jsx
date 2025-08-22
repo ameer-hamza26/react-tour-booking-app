@@ -17,7 +17,7 @@ function Tour() {
   const fetchTours = async (filters = {}) => {
     try {
       setLoading(true);
-      setError(null);
+      setError(null); 
       const response = await tourApi.getTours(filters);
       setTours(response.data);
     } catch (err) {
