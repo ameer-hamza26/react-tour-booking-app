@@ -18,8 +18,10 @@ function Tour() {
     try {
       setLoading(true);
       setError(null); 
-      const response = await tourApi.getTours(filters);
-      setTours(response.data);
+      const data = await tourApi.getTours(filters);
+      // Normalize: API may return an array or an object with a data array
+      const list = Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
+      setTours(list);
     } catch (err) {
       setError(err.message || 'Failed to fetch tours. Please try again.');
       console.error('Error fetching tours:', err);
@@ -62,6 +64,9 @@ function Tour() {
     );
   }
 
+  // Ensure we always map over an array
+  const tourList = Array.isArray(tours) ? tours : [];
+
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
       <Box sx={{ textAlign: 'center', mb: 3 }}>
@@ -98,7 +103,7 @@ function Tour() {
         spacing={3}
         justifyContent="center"
       >
-        {tours.map(tour => (
+        {tourList.map(tour => (
           <Grid item xs={12} sm={6} md={4} key={tour._id}>
             <Card elevation={0} sx={{ height: '100%', borderRadius: 3, overflow: 'hidden', transition: 'transform 0.25s ease, box-shadow 0.25s ease', boxShadow: '0 8px 24px rgba(0,0,0,0.06)', '&:hover': { transform: 'translateY(-6px)', boxShadow: '0 12px 32px rgba(0,0,0,0.10)' } }}>
               <Link to={`/tour/${tour._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -131,7 +136,7 @@ function Tour() {
       </Grid>
 
       {/* No Results */}
-      {!loading && tours.length === 0 && (
+      {!loading && tourList.length === 0 && (
         <Typography variant="h6" align="center" color="text.secondary" sx={{ mt: 4 }}>
           No tours found matching your search criteria.
         </Typography>
