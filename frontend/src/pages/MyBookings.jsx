@@ -66,7 +66,8 @@ const MyBookings = () => {
     try {
       setLoading(true);
       const response = await bookingApi.getUserBookings();
-      setBookings(response.data);
+      // API returns { success, count, data }
+      setBookings(Array.isArray(response.data) ? response.data : (response.data?.data || []));
     } catch (err) {
       setError(err.message || 'Failed to fetch bookings');
       toast.error('Failed to fetch bookings');
@@ -140,7 +141,7 @@ const MyBookings = () => {
         ) : (
           <Grid container spacing={3}>
             {filteredBookings.map((booking) => (
-              <Grid item xs={12} md={6} key={booking._id}>
+              <Grid item xs={12} md={6} key={booking.id}>
                 <Card elevation={3}>
                   <CardContent>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
@@ -158,21 +159,21 @@ const MyBookings = () => {
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                       <EventIcon sx={{ mr: 1, color: 'text.secondary' }} />
                       <Typography variant="body2" color="text.secondary">
-                        {format(new Date(booking.startDate), 'PPP')}
+                        {booking.start_date ? format(new Date(booking.start_date), 'PPP') : '—'}
                       </Typography>
                     </Box>
 
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                       <PeopleIcon sx={{ mr: 1, color: 'text.secondary' }} />
                       <Typography variant="body2" color="text.secondary">
-                        {booking.numberOfPeople.adults} Adults, {booking.numberOfPeople.children} Children
+                        {booking.adults} Adults, {booking.children} Children
                       </Typography>
                     </Box>
 
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                       <MoneyIcon sx={{ mr: 1, color: 'text.secondary' }} />
                       <Typography variant="body2" color="text.secondary">
-                        Total: ${booking.totalPrice.toFixed(2)}
+                        Total: ${Number(booking.total_price).toFixed(2)}
                       </Typography>
                     </Box>
 
@@ -186,7 +187,7 @@ const MyBookings = () => {
                   <CardActions>
                     <Button
                       size="small"
-                      onClick={() => navigate(`/bookings/${booking._id}`)}
+                      onClick={() => navigate(`/bookings/${booking.id}`)}
                     >
                       View Details
                     </Button>
@@ -196,11 +197,11 @@ const MyBookings = () => {
                         color="error"
                         onClick={() => setCancelDialog({
                           open: true,
-                          bookingId: booking._id,
+                          bookingId: booking.id,
                           reason: ''
                         })}
                       >
-                        Cancel Booking
+                        Cancel
                       </Button>
                     )}
                   </CardActions>
