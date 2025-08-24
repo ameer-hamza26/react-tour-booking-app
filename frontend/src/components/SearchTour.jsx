@@ -190,7 +190,9 @@ const SearchTour = ({ onSearch }) => {
               label="Tour Date"
               value={searchParams.date}
               onChange={handleDateChange}
-              renderInput={(params) => <TextField {...params} fullWidth />}
+              slotProps={{
+                textField: { fullWidth: true }
+              }}
             />
           </LocalizationProvider>
         </Grid>

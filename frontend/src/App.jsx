@@ -4,7 +4,6 @@ import { AuthProvider } from './context/AuthContext';
 import HomePage from './pages/HomePage';
 import ExploreNow from './pages/ExploreNow';
 import AddTour from './pages/AddTour';
-import MyTour from './pages/MyTour';
 import Tour from './pages/Tour';
 import Navbar from './components/Navbar';
 import TourDetailPage from './pages/TourDetailPage';
@@ -35,12 +34,7 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* User Protected Routes */}
-          <Route path="/myTour" element={
-            <PrivateRoute>
-              <MyTour />
-            </PrivateRoute>
-          } />
+         
           <Route path="/tour/:tourId/book" element={
             <PrivateRoute>
               <BookingForm />

@@ -101,7 +101,9 @@ const BookingForm = () => {
       setLoading(true);
       const bookingData = {
         ...data,
-        tourId,
+        // Ensure correct types for backend validation/queries
+        tourId: Number(tourId),
+        startDate: data.startDate instanceof Date ? data.startDate.toISOString() : data.startDate,
         totalPrice
       };
 
@@ -109,7 +111,8 @@ const BookingForm = () => {
       
       if (response.success) {
         toast.success('Booking created successfully!');
-        navigate(`/bookings/${response.data._id}`);
+        // Sequelize returns `id`, not `_id`
+        navigate(`/bookings/${response.data.id}`);
       }
     } catch (err) {
       toast.error(err.message || 'Failed to create booking');
@@ -164,15 +167,14 @@ const BookingForm = () => {
                         label="Start Date"
                         value={field.value}
                         onChange={(date) => field.onChange(date)}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            fullWidth
-                            error={!!errors.startDate}
-                            helperText={errors.startDate?.message}
-                          />
-                        )}
                         minDate={new Date()}
+                        slotProps={{
+                          textField: {
+                            fullWidth: true,
+                            error: !!errors.startDate,
+                            helperText: errors.startDate?.message
+                          }
+                        }}
                       />
                     </LocalizationProvider>
                   )}

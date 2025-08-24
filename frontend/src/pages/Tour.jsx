@@ -103,13 +103,13 @@ function Tour() {
         spacing={3}
         justifyContent="center"
       >
-        {tourList.map(tour => (
-          <Grid item xs={12} sm={6} md={4} key={tour._id}>
+        {tourList.map((tour) => (
+          <Grid item xs={12} sm={6} md={4} key={tour.id ?? tour._id ?? `${tour.title}-${tour.price}`}>
             <Card elevation={0} sx={{ height: '100%', borderRadius: 3, overflow: 'hidden', transition: 'transform 0.25s ease, box-shadow 0.25s ease', boxShadow: '0 8px 24px rgba(0,0,0,0.06)', '&:hover': { transform: 'translateY(-6px)', boxShadow: '0 12px 32px rgba(0,0,0,0.10)' } }}>
-              <Link to={`/tour/${tour._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+              <Link to={`/tour/${tour.id ?? tour._id}` } style={{ textDecoration: 'none', color: 'inherit' }}>
                 <CardMedia
                   component="img"
-                  image={tour.images?.[0] || '/default-tour-image.jpg'}
+                  image={tour.images?.[0]?.url || tour.images?.[0] || '/default-tour-image.jpg'}
                   alt={tour.title}
                   sx={{ height: 220, objectFit: 'cover' }}
                 />

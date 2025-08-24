@@ -16,9 +16,18 @@ export const createBooking = async (req, res) => {
       contactInfo
     } = req.body;
 
+    // Normalize and validate tourId (must be a positive integer)
+    const tourIdNum = Number(tourId);
+    if (!Number.isInteger(tourIdNum) || tourIdNum <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or missing tourId'
+      });
+    }
+
     // Check if tour exists and is active
     const tour = await Tour.findOne({ 
-      where: { id: tourId, is_active: true } 
+      where: { id: tourIdNum, is_active: true } 
     });
     if (!tour) {
       return res.status(404).json({
@@ -58,7 +67,7 @@ export const createBooking = async (req, res) => {
     // Check if tour is available for the selected date
     const existingBookings = await Booking.count({
       where: {
-        tour_id: tourId,  
+        tour_id: tourIdNum,  
         start_date: bookingDate,
         status: { [Op.in]: ['pending', 'confirmed'] }
       }
@@ -78,7 +87,7 @@ export const createBooking = async (req, res) => {
     // Create booking
     const booking = await Booking.create({
       user_id: req.user.id,
-      tour_id: tourId,
+      tour_id: tourIdNum,
       start_date: bookingDate,
       adults: numberOfPeople.adults,
       children: numberOfPeople.children,
