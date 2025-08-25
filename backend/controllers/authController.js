@@ -149,7 +149,7 @@ export const getCurrentUser = async (req, res) => {
         message: 'User not found'
       });
     }
-
+ 
     res.status(200).json({
       success: true,
       data: user
