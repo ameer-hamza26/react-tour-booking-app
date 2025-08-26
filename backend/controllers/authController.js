@@ -150,7 +150,7 @@ export const getCurrentUser = async (req, res) => {
       });
     }
  
-    res.status(200).json({
+    res.status(200).json({ 
       success: true,
       data: user
     });
