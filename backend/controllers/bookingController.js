@@ -118,18 +118,21 @@ export const getUserBookings = async (req, res) => {
   try {
     const { status, startDate, endDate, tourId } = req.query;
     let whereClause = { user_id: req.user.id };
-    // console.log('getUserBookings query:', req.query);
+    
     // Add filters if provided
-    if (status) {
+    if (status && status !== 'undefined') {
       whereClause.status = status;
     }
-    if (startDate && endDate) {
+    
+    // Handle date range filter
+    if (startDate && endDate && startDate !== 'undefined' && endDate !== 'undefined') {
       whereClause.start_date = {
         [Op.between]: [new Date(startDate), new Date(endDate)]
       };
     }
-    // Optional filter by tour if a valid ID is provided
-    if (tourId && !isNaN(Number(tourId))) {
+    
+    // Handle tour filter - only add if tourId is provided and valid
+    if (tourId && tourId !== 'undefined' && !isNaN(Number(tourId))) {
       whereClause.tour_id = Number(tourId);
     }
 

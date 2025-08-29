@@ -1,5 +1,6 @@
 import { Tour, TourImage, TourStartDate, TourFeature } from '../model/index.js';
 import { Op } from 'sequelize';
+import sequelize from '../config/database.js';
 
 // @desc    Get all tours
 // @route   GET /api/tours
@@ -256,26 +257,40 @@ export const updateTour = async (req, res) => {
 // @route   DELETE /api/tours/:id
 // @access  Private/Admin
 export const deleteTour = async (req, res) => {
+  const t = await sequelize.transaction();
+  
   try {
-    const tour = await Tour.findByPk(req.params.id);
+    // Store the transaction on the request object for use in the middleware
+    req.transaction = t;
+    
+    const tour = await Tour.findByPk(req.params.id, { transaction: t });
+
     if (!tour) {
+      await t.rollback();
       return res.status(404).json({
         success: false,
         message: 'Tour not found'
       });
     }
 
-    // Soft delete by setting is_active to false
-    await tour.update({ is_active: false });
-
-    res.json({
+    // Delete the tour
+    await tour.destroy({ transaction: t });
+    
+    // The sequence reset is now handled by the withSequenceReset middleware
+    await t.commit();
+    
+    // The middleware will handle the response
+    res.status(200).json({
       success: true,
-      data: {}
+      message: 'Tour deleted successfully'
     });
   } catch (error) {
+    await t.rollback();
+    console.error('Error deleting tour:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: 'Failed to delete tour',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
-}; 
+};

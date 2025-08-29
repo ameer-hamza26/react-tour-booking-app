@@ -246,7 +246,7 @@ const AdminDashboard = () => {
             <List>
               {recentBookings.length > 0 ? (
                 recentBookings.map((booking, index) => (
-                  <React.Fragment key={booking._id}>
+                  <React.Fragment key={booking.id}>
                     <ListItem>
                       <ListItemIcon>
                         <Avatar sx={{ bgcolor: 'primary.main' }}>
@@ -282,4 +282,4 @@ const AdminDashboard = () => {
   );
 };
 
-export default AdminDashboard; 
+export default AdminDashboard;
