@@ -49,8 +49,14 @@ const statusIcons = {
 const MyBookings = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [filters, setFilters] = useState({
+    status: '',
+    startDate: '',
+    endDate: '',
+    tourId: ''
+  });
   const [activeTab, setActiveTab] = useState('all');
   const [cancelDialog, setCancelDialog] = useState({
     open: false,
@@ -58,19 +64,35 @@ const MyBookings = () => {
     reason: ''
   });
 
+  // Fetch bookings when filters change
   useEffect(() => {
     fetchBookings();
-  }, []);
+  }, [filters]);
 
   const fetchBookings = async () => {
     try {
       setLoading(true);
-      const response = await bookingApi.getUserBookings();
-      // API returns { success, count, data }
-      setBookings(Array.isArray(response.data) ? response.data : (response.data?.data || []));
+      setError('');
+      
+      // Only include non-empty filters
+      const activeFilters = Object.entries(filters).reduce((acc, [key, value]) => {
+        if (value) acc[key] = value;
+        return acc;
+      }, {});
+      
+      const response = await bookingApi.getUserBookings(activeFilters);
+      
+      // Handle different response formats
+      const bookingsData = Array.isArray(response) 
+        ? response 
+        : (response.data || []);
+        
+      setBookings(Array.isArray(bookingsData) ? bookingsData : []);
     } catch (err) {
-      setError(err.message || 'Failed to fetch bookings');
-      toast.error('Failed to fetch bookings');
+      const errorMessage = err.message || 'Failed to fetch bookings';
+      setError(errorMessage);
+      toast.error(errorMessage);
+      console.error('Error fetching bookings:', err);
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   TextField,
@@ -9,16 +9,32 @@ import {
   Paper,
   InputAdornment,
   IconButton,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
+  CircularProgress,
+  Alert,
+  Snackbar,
+  Tooltip,
+  Fade,
+  useMediaQuery,
+  useTheme,
+  Card,
+  CardContent,
+  alpha
 } from '@mui/material';
-import { Search as SearchIcon, Clear as ClearIcon } from '@mui/icons-material';
+import { 
+  Search as SearchIcon, 
+  Clear as ClearIcon, 
+  LocationOn as LocationIcon,
+  AttachMoney as AttachMoneyIcon,
+  CalendarToday as CalendarTodayIcon,
+  Info as InfoIcon,
+  TrendingUp as TrendingUpIcon
+} from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import axios from 'axios';
+import { debounce } from 'lodash';
+import PropTypes from 'prop-types';
+import { tourApi } from '../services/api';
 
 // Popular destinations for quick filters
 const popularDestinations = [
@@ -31,61 +47,160 @@ const popularDestinations = [
 ];
 
 const SearchTour = ({ onSearch }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isSmallMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  
   const [searchParams, setSearchParams] = useState({
-    location: '',
+    destination: '',
     minPrice: '',
     maxPrice: '',
-    date: null
+    startDate: null
+  });
+
+  const [touched, setTouched] = useState({
+    destination: false,
+    minPrice: false,
+    maxPrice: false
   });
 
   const [isSearchEnabled, setIsSearchEnabled] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // Check if any search parameter is filled
-  useEffect(() => {
-    const hasSearchQuery = Object.values(searchParams).some(value => 
-      value !== '' && value !== null
-    );
-    setIsSearchEnabled(hasSearchQuery);
+  // Debounce search to avoid too many API calls
+  const debouncedSearch = useCallback(debounce(async (query) => {
+      if (!query || query.length < 2) {
+        setSuggestions([]);
+        return;
+      }
+      try {
+        const response = await tourApi.getTours({ destination: query });
+        const uniqueDestinations = [...new Set(response.data.map(tour => tour.destination))];
+        setSuggestions(uniqueDestinations.slice(0, 5));
+      } catch (err) {
+        console.error('Error fetching suggestions:', err);
+      }
+    }, 300), []);
+
+  // Validate form
+  const validateForm = useCallback(() => {
+    const { destination, minPrice, maxPrice } = searchParams;
+    
+    // Check if any field has a value
+    const hasAnyValue = 
+      destination.trim() !== '' || 
+      minPrice !== '' || 
+      maxPrice !== '' || 
+      searchParams.startDate !== null;
+    
+    // Validate price range if both are provided
+    const isValidPriceRange = 
+      !minPrice || 
+      !maxPrice || 
+      Number(minPrice) <= Number(maxPrice);
+    
+    return hasAnyValue && isValidPriceRange;
   }, [searchParams]);
 
+  // Update search enabled state when form changes
+  useEffect(() => {
+    setIsSearchEnabled(validateForm());
+  }, [searchParams, validateForm]);
+
   const handleInputChange = (field) => (event) => {
+    const value = event.target.value;
+    
+    // Validate numeric inputs
+    if ((field === 'minPrice' || field === 'maxPrice') && value !== '') {
+      // Only allow numbers and empty string
+      if (!/^\d*$/.test(value)) return;
+      
+      // Limit price length
+      if (value.length > 8) return;
+    }
+    
     setSearchParams(prev => ({
       ...prev,
-      [field]: event.target.value
+      [field]: value
     }));
+    
+    // Mark field as touched
+    setTouched(prev => ({
+      ...prev,
+      [field]: true
+    }));
+    
+    // Fetch destination suggestions
+    if (field === 'destination') {
+      debouncedSearch(value);
+    }
   };
 
   const handleDateChange = (date) => {
     setSearchParams(prev => ({
       ...prev,
-      date
+      startDate: date
     }));
+    
+    // Auto-search when date is selected
+    if (validateForm()) {
+      handleSearch();
+    }
   };
 
-  const handlePopularDestinationClick = (destination) => {
+  const handleSuggestionSelect = (destination) => {
     setSearchParams(prev => ({
       ...prev,
-      location: destination
+      destination
     }));
+    setShowSuggestions(false);
+    
+    // Auto-search when suggestion is selected
+    if (validateForm()) {
+      handleSearch();
+    }
   };
 
-  const handleClearSearch = () => {
+  const handleClear = () => {
     setSearchParams({
-      location: '',
+      destination: '',
       minPrice: '',
       maxPrice: '',
-      date: null
+      startDate: null
     });
+    setTouched({
+      destination: false,
+      minPrice: false,
+      maxPrice: false
+    });
+    setError('');
+    onSearch([]);
+  };
+  
+  const handleCloseError = () => {
+    setError('');
   };
 
   const handleSearch = async () => {
+    if (!isSearchEnabled || isLoading) return;
+    
+    setIsLoading(true);
+    setError('');
+    setShowSuggestions(false);
+    
     try {
-      // Format the search parameters
+      // Validate price range
+      if (searchParams.minPrice && searchParams.maxPrice && 
+          Number(searchParams.minPrice) > Number(searchParams.maxPrice)) {
+        throw new Error('Minimum price cannot be greater than maximum price');
+      }
+      
       const formattedParams = {
-        ...searchParams,
-        // Convert date to ISO string if it exists
-        date: searchParams.date ? searchParams.date.toISOString() : undefined,
-        // Convert price strings to numbers if they exist
+        destination: searchParams.destination.trim() || undefined,
+        startDate: searchParams.startDate ? searchParams.startDate.toISOString().split('T')[0] : undefined,
         minPrice: searchParams.minPrice ? Number(searchParams.minPrice) : undefined,
         maxPrice: searchParams.maxPrice ? Number(searchParams.maxPrice) : undefined
       };
@@ -95,133 +210,419 @@ const SearchTour = ({ onSearch }) => {
         Object.entries(formattedParams).filter(([_, value]) => value !== undefined && value !== '')
       );
 
-      const response = await axios.get('/api/tours', { 
-        params: cleanParams,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-
-      onSearch(response.data.data);
+      const response = await tourApi.getTours(cleanParams);
+      onSearch(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message || 'Error searching tours';
+      setError(errorMessage);
       console.error('Error searching tours:', error);
-      // You might want to show an error message to the user here
+      onSearch([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle keyboard events for form submission
+  const handleKeyPress = (event) => {
+    if (event.key === 'Enter' && isSearchEnabled) {
+      handleSearch();
     }
   };
 
   return (
-    <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
-      <Typography variant="h5" gutterBottom>
-        Search Tours
-      </Typography>
-
-      {/* Popular Destinations */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="subtitle1" gutterBottom>
-          Popular Destinations
-        </Typography>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-          {popularDestinations.map((destination) => (
-            <Chip
-              key={destination}
-              label={destination}
-              onClick={() => handlePopularDestinationClick(destination)}
-              color={searchParams.location === destination ? 'primary' : 'default'}
-              clickable
-            />
-          ))}
-        </Box>
-      </Box>
-
-      <Grid container spacing={2}>
-        {/* Location Search */}
-        <Grid item xs={12} md={3}>
-          <TextField
-            fullWidth
-            label="Location"
-            value={searchParams.location}
-            onChange={handleInputChange('location')}
-            InputProps={{
-              endAdornment: searchParams.location && (
-                <InputAdornment position="end">
-                  <IconButton size="small" onClick={() => setSearchParams(prev => ({ ...prev, location: '' }))}>
-                    <ClearIcon />
-                  </IconButton>
-                </InputAdornment>
-              )
+    <LocalizationProvider dateAdapter={AdapterDateFns}>
+      <Card 
+        elevation={0}
+        sx={{ 
+          mb: 4,
+          borderRadius: 3,
+          background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.03)} 0%, ${alpha(theme.palette.secondary.main, 0.03)} 100%)`,
+          border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+          overflow: 'visible'
+        }}
+      >
+        <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
+          <Typography 
+            variant="h4" 
+            gutterBottom 
+            sx={{ 
+              fontWeight: 700,
+              color: 'primary.main',
+              mb: 3,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5,
+              fontSize: { xs: '1.75rem', md: '2.125rem' }
             }}
-          />
-        </Grid>
-
-        {/* Price Range */}
-        <Grid item xs={12} md={4}>
-          <Grid container spacing={1}>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="Min Price"
-                type="number"
-                value={searchParams.minPrice}
-                onChange={handleInputChange('minPrice')}
-                InputProps={{
-                  startAdornment: <InputAdornment position="start">$</InputAdornment>
-                }}
-              />
+          >
+            <SearchIcon fontSize="large" /> Discover Your Next Adventure
+          </Typography>
+          
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 600 }}>
+            Find the perfect tour package tailored to your preferences. Search by destination, date, or budget.
+          </Typography>
+          
+          <Box onKeyPress={handleKeyPress}>
+            <Grid container spacing={2} alignItems="flex-start">
+              {/* Destination Field */}
+              <Grid item xs={12} md={4}>
+                <Box sx={{ position: 'relative' }}>
+                  <TextField
+                    fullWidth
+                    label="Destination"
+                    value={searchParams.destination}
+                    onChange={handleInputChange('destination')}
+                    onFocus={() => setShowSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                    variant="outlined"
+                    size="medium"
+                    placeholder="Where would you like to go?"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LocationIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        backgroundColor: 'background.paper',
+                        borderRadius: 2,
+                        '&:hover fieldset': {
+                          borderColor: 'primary.light',
+                        },
+                      },
+                    }}
+                  />
+                  {showSuggestions && suggestions.length > 0 && (
+                    <Paper 
+                      elevation={4} 
+                      sx={{
+                        position: 'absolute',
+                        width: '100%',
+                        zIndex: 10,
+                        mt: 0.5,
+                        maxHeight: 200,
+                        overflow: 'auto',
+                        borderRadius: 2,
+                        '&::-webkit-scrollbar': {
+                          width: '6px',
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                          backgroundColor: 'rgba(0,0,0,0.2)',
+                          borderRadius: '3px',
+                        },
+                      }}
+                    >
+                      {suggestions.map((suggestion) => (
+                        <Box
+                          key={suggestion}
+                          onClick={() => handleSuggestionSelect(suggestion)}
+                          sx={{
+                            p: 1.5,
+                            cursor: 'pointer',
+                            '&:hover': {
+                              backgroundColor: 'action.hover',
+                            },
+                            borderBottom: '1px solid',
+                            borderColor: 'divider',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            color: 'text.primary',
+                          }}
+                        >
+                          <LocationIcon color="primary" fontSize="small" />
+                          <Typography variant="body2">{suggestion}</Typography>
+                        </Box>
+                      ))}
+                    </Paper>
+                  )}
+                </Box>
+              </Grid>
+              
+              {/* Date Picker */}
+              <Grid item xs={12} sm={6} md={3}>
+                <DatePicker
+                  label="Start Date"
+                  value={searchParams.startDate}
+                  onChange={handleDateChange}
+                  disablePast
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      fullWidth
+                      size="medium"
+                      placeholder="Select travel date"
+                      InputProps={{
+                        ...params.InputProps,
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <CalendarTodayIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          backgroundColor: 'background.paper',
+                          borderRadius: 2,
+                          '&:hover fieldset': {
+                            borderColor: 'primary.light',
+                          },
+                        },
+                      }}
+                    />
+                  )}
+                />
+              </Grid>
+              
+              {/* Price Range Fields */}
+              <Grid item xs={12} sm={6} md={5}>
+                <Box sx={{ 
+                  display: 'flex', 
+                  gap: 1.5,
+                  flexDirection: { xs: 'column', sm: 'row' }
+                }}>
+                  <TextField
+                    fullWidth
+                    label="Min Price"
+                    type="number"
+                    value={searchParams.minPrice}
+                    onChange={handleInputChange('minPrice')}
+                    variant="outlined"
+                    size="medium"
+                    placeholder="Min"
+                    error={touched.minPrice && searchParams.minPrice && searchParams.maxPrice && 
+                          Number(searchParams.minPrice) > Number(searchParams.maxPrice)}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <AttachMoneyIcon color={touched.minPrice && searchParams.minPrice && searchParams.maxPrice && 
+                                                Number(searchParams.minPrice) > Number(searchParams.maxPrice) ? 'error' : 'action'} />
+                        </InputAdornment>
+                      ),
+                      inputProps: { 
+                        min: 0,
+                        style: { textAlign: 'left' }
+                      },
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        backgroundColor: 'background.paper',
+                        borderRadius: 2,
+                      },
+                    }}
+                  />
+                  
+                  <TextField
+                    fullWidth
+                    label="Max Price"
+                    type="number"
+                    value={searchParams.maxPrice}
+                    onChange={handleInputChange('maxPrice')}
+                    variant="outlined"
+                    size="medium"
+                    placeholder="Max"
+                    error={touched.maxPrice && searchParams.minPrice && searchParams.maxPrice && 
+                          Number(searchParams.minPrice) > Number(searchParams.maxPrice)}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <AttachMoneyIcon color={touched.maxPrice && searchParams.minPrice && searchParams.maxPrice && 
+                                                Number(searchParams.minPrice) > Number(searchParams.maxPrice) ? 'error' : 'action'} />
+                        </InputAdornment>
+                      ),
+                      inputProps: { 
+                        min: searchParams.minPrice || 0,
+                        style: { textAlign: 'left' }
+                      },
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        backgroundColor: 'background.paper',
+                        borderRadius: 2,
+                      },
+                    }}
+                  />
+                </Box>
+                {touched.maxPrice && searchParams.minPrice && searchParams.maxPrice && 
+                 Number(searchParams.minPrice) > Number(searchParams.maxPrice) && (
+                  <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
+                    Maximum price must be greater than minimum price
+                  </Typography>
+                )}
+              </Grid>
+              
+              {/* Action Buttons */}
+              <Grid item xs={12} sx={{ 
+                display: 'flex', 
+                gap: 1.5,
+                alignItems: 'center',
+                justifyContent: { xs: 'center', sm: 'flex-start' },
+                flexWrap: 'wrap'
+              }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleSearch}
+                  disabled={!isSearchEnabled || isLoading}
+                  startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : <SearchIcon />}
+                  size="large"
+                  sx={{
+                    py: 1.5,
+                    px: 3,
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    fontSize: '1rem',
+                    boxShadow: '0 4px 14px rgba(25, 118, 210, 0.4)',
+                    '&:hover': {
+                      boxShadow: '0 6px 20px rgba(25, 118, 210, 0.5)',
+                      transform: 'translateY(-2px)',
+                    },
+                    '&:active': {
+                      transform: 'translateY(0)',
+                    },
+                    transition: 'all 0.2s ease-in-out',
+                    minWidth: { xs: '100%', sm: 'auto' }
+                  }}
+                >
+                  {isLoading ? 'Searching...' : 'Find Tours'}
+                </Button>
+                
+                <Tooltip title="Clear all filters">
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={handleClear}
+                    disabled={isLoading || !isSearchEnabled}
+                    startIcon={<ClearIcon />}
+                    size="large"
+                    sx={{
+                      py: 1.5,
+                      px: 3,
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      fontWeight: 500,
+                      '&:hover': {
+                        backgroundColor: 'action.hover',
+                        transform: 'translateY(-2px)',
+                      },
+                      '&:active': {
+                        transform: 'translateY(0)',
+                      },
+                      transition: 'all 0.2s ease-in-out',
+                      minWidth: { xs: '100%', sm: 'auto' }
+                    }}
+                  >
+                    Clear
+                  </Button>
+                </Tooltip>
+                
+                <Tooltip title="Search by destination, date, or price range. Press Enter to search.">
+                  <IconButton 
+                    color="info" 
+                    size="medium"
+                    sx={{
+                      color: 'text.secondary',
+                      '&:hover': {
+                        color: 'primary.main',
+                        backgroundColor: 'rgba(25, 118, 210, 0.08)',
+                        transform: 'scale(1.1)',
+                      },
+                      transition: 'all 0.2s ease-in-out',
+                    }}
+                  >
+                    <InfoIcon />
+                  </IconButton>
+                </Tooltip>
+              </Grid>
             </Grid>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="Max Price"
-                type="number"
-                value={searchParams.maxPrice}
-                onChange={handleInputChange('maxPrice')}
-                InputProps={{
-                  startAdornment: <InputAdornment position="start">$</InputAdornment>
-                }}
-              />
-            </Grid>
-          </Grid>
-        </Grid>
-
-        {/* Date Picker */}
-        <Grid item xs={12} md={3}>
-          <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <DatePicker
-              label="Tour Date"
-              value={searchParams.date}
-              onChange={handleDateChange}
-              slotProps={{
-                textField: { fullWidth: true }
-              }}
-            />
-          </LocalizationProvider>
-        </Grid>
-
-        {/* Search and Clear Buttons */}
-        <Grid item xs={12} md={2}>
-          <Box sx={{ display: 'flex', gap: 1, height: '100%' }}>
-            <Button
-              fullWidth
-              variant="contained"
-              startIcon={<SearchIcon />}
-              onClick={handleSearch}
-              disabled={!isSearchEnabled}
-            >
-              Search
-            </Button>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={handleClearSearch}
-              disabled={!isSearchEnabled}
-            >
-              Clear
-            </Button>
           </Box>
-        </Grid>
-      </Grid>
-    </Paper>
+          
+          {/* Popular Destinations */}
+          <Box sx={{ mt: 4, mb: 1 }}>
+            <Typography variant="subtitle1" color="text.secondary" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 600 }}>
+              <TrendingUpIcon fontSize="small" color="primary" /> Popular Destinations:
+            </Typography>
+            <Box sx={{ 
+              display: 'flex', 
+              flexWrap: 'wrap', 
+              gap: 1,
+              '& .MuiChip-root': {
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: 2,
+                },
+                '&:active': {
+                  transform: 'translateY(0)',
+                },
+              },
+            }}>
+              {popularDestinations.map((destination) => (
+                <Tooltip key={destination} title={`Search for ${destination} tours`} arrow>
+                  <Chip
+                    label={destination}
+                    onClick={() => handleSuggestionSelect(destination)}
+                    color={searchParams.destination === destination ? 'primary' : 'default'}
+                    variant={searchParams.destination === destination ? 'filled' : 'outlined'}
+                    clickable
+                    disabled={isLoading}
+                    size={isSmallMobile ? 'small' : 'medium'}
+                    sx={{
+                      fontWeight: searchParams.destination === destination ? 600 : 'normal',
+                      '& .MuiChip-label': {
+                        px: 1.5,
+                      },
+                    }}
+                    onMouseDown={(e) => e.preventDefault()} // Prevent focus on click
+                  />
+                </Tooltip>
+              ))}
+            </Box>
+          </Box>
+        </CardContent>
+        
+        <Snackbar
+          open={!!error}
+          autoHideDuration={6000}
+          onClose={handleCloseError}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          TransitionComponent={Fade}
+          sx={{
+            '& .MuiAlert-root': {
+              boxShadow: 3,
+              borderRadius: 2,
+              minWidth: 300,
+            },
+          }}
+        >
+          <Alert 
+            onClose={handleCloseError} 
+            severity="error" 
+            sx={{ 
+              width: '100%',
+              '& .MuiAlert-message': {
+                display: 'flex',
+                alignItems: 'center',
+              },
+              '& .MuiAlert-icon': {
+                alignItems: 'center',
+              },
+            }}
+            elevation={6}
+          >
+            {error}
+          </Alert>
+        </Snackbar>
+      </Card>
+    </LocalizationProvider>
   );
 };
 
-export default SearchTour; 
+SearchTour.propTypes = {
+  onSearch: PropTypes.func.isRequired
+};
+
+export default SearchTour;

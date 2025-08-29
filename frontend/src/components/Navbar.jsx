@@ -101,11 +101,7 @@ const Navbar = () => {
 
           {user && (
             <div>
-              <RouterLink to="/myTour" style={{ textDecoration: 'none', color: 'inherit' }}>
-                <Button color="inherit" sx={{ textTransform: 'none', fontWeight: 500 }}>
-                  My Tours
-                </Button>
-              </RouterLink>
+              
               
               <RouterLink to="/bookings" style={{ textDecoration: 'none', color: 'inherit' }}>
                 <Button color="inherit" sx={{ textTransform: 'none', fontWeight: 500 }}>
@@ -213,13 +209,7 @@ const Navbar = () => {
 
           {user && (
             <div>
-              <MenuItem onClick={handleMenuClose}>
-                <RouterLink to="/myTour" style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}>
-                  <Button fullWidth sx={{ justifyContent: 'flex-start', textTransform: 'none' }}>
-                    My Tours
-                  </Button>
-                </RouterLink>
-              </MenuItem>
+            
               
               <MenuItem onClick={handleMenuClose}>
                 <RouterLink to="/bookings" style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}>

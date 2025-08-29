@@ -66,10 +66,18 @@ export const bookingApi = {
     }
   },
 
-  // Get user's bookings
-  getUserBookings: async () => {
+  // Get user's bookings with optional filters
+  getUserBookings: async (filters = {}) => {
     try {
-      const response = await api.get('/bookings');
+      // Remove undefined or null values from filters
+      const validFilters = Object.entries(filters).reduce((acc, [key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          acc[key] = value;
+        }
+        return acc;
+      }, {});
+      
+      const response = await api.get('/bookings', { params: validFilters });
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Error fetching bookings' };
