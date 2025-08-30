@@ -136,16 +136,24 @@ const AdminDashboard = () => {
   }
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      {/* Header */}
-      <Box mb={4}>
-        <Typography variant="h3" component="h1" gutterBottom fontWeight="bold">
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+        <Typography variant="h4" component="div">
+          <DashboardIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
           Admin Dashboard
         </Typography>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          startIcon={<AddIcon />}
+          onClick={() => navigate('/admin/tours/add')}
+        >
+          Add New Tour
+        </Button>
+      </Box>
         <Typography variant="h6" color="text.secondary">
           Welcome back, {user?.firstName}! Here's what's happening with your tour booking system.
         </Typography>
-      </Box>
 
       {/* Statistics Cards */}
       <Grid container spacing={3} mb={4}>
@@ -200,7 +208,7 @@ const AdminDashboard = () => {
                 description="Create a new tour package"
                 icon={<AddIcon />}
                 buttonText="Add Tour"
-                onClick={() => navigate('/addTour')}
+                onClick={() => navigate('/admin/tours/add')}
                 color="primary.main"
               />
             </Grid>

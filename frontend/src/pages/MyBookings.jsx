@@ -74,18 +74,36 @@ const MyBookings = () => {
       setLoading(true);
       setError('');
       
-      // Only include non-empty filters
-      const activeFilters = Object.entries(filters).reduce((acc, [key, value]) => {
-        if (value) acc[key] = value;
-        return acc;
-      }, {});
+      // Create a clean filters object
+      const cleanFilters = {};
       
-      const response = await bookingApi.getUserBookings(activeFilters);
+      // Process each filter
+      for (const [key, value] of Object.entries(filters)) {
+        // Skip undefined, null, empty strings, and 'null' strings
+        if (value === undefined || value === null || value === '' || value === 'null') {
+          continue;
+        }
+        
+        // Special handling for tourId
+        if (key === 'tourId') {
+          const tourIdNum = Number(value);
+          if (!isNaN(tourIdNum) && tourIdNum > 0) {
+            cleanFilters[key] = tourIdNum;
+          }
+          continue;
+        }
+        
+        // For other filters, just copy the value
+        cleanFilters[key] = value;
+      }
       
-      // Handle different response formats
+      console.log('Fetching bookings with filters:', cleanFilters);
+      const response = await bookingApi.getUserBookings(cleanFilters);
+      
+      // Handle response
       const bookingsData = Array.isArray(response) 
         ? response 
-        : (response.data || []);
+        : (response?.data || []);
         
       setBookings(Array.isArray(bookingsData) ? bookingsData : []);
     } catch (err) {

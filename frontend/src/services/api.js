@@ -69,15 +69,38 @@ export const bookingApi = {
   // Get user's bookings with optional filters
   getUserBookings: async (filters = {}) => {
     try {
-      // Remove undefined or null values from filters
-      const validFilters = Object.entries(filters).reduce((acc, [key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          acc[key] = value;
-        }
-        return acc;
-      }, {});
+      console.log('Fetching bookings with filters:', filters);
       
-      const response = await api.get('/bookings', { params: validFilters });
+      // Create a new object with only valid, non-empty values
+      const cleanFilters = {};
+      
+      Object.entries(filters).forEach(([key, value]) => {
+        // Skip undefined, null, empty strings, and 'null' strings
+        if (value === undefined || value === null || value === '' || value === 'null') {
+          return;
+        }
+        
+        // Special handling for tourId
+        if (key === 'tourId') {
+          const tourIdNum = Number(value);
+          // Only include valid tour IDs
+          if (!isNaN(tourIdNum) && tourIdNum > 0) {
+            cleanFilters[key] = tourIdNum;
+          } else {
+            console.warn(`Skipping invalid tourId: ${value}`);
+          }
+          return;
+        }
+        
+        cleanFilters[key] = value;
+      });
+      
+      // Only include the query string if there are filters
+      const queryString = Object.keys(cleanFilters).length > 0 
+        ? `?${new URLSearchParams(cleanFilters).toString()}`
+        : '';
+      
+      const response = await api.get(`/bookings${queryString}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Error fetching bookings' };
@@ -91,6 +114,16 @@ export const bookingApi = {
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Error fetching booking details' };
+    }
+  },
+
+  // Cancel a booking
+  cancelBooking: async (bookingId) => {
+    try {
+      const response = await api.delete(`/bookings/${bookingId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error canceling booking' };
     }
   }
 };

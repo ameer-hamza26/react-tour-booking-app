@@ -64,6 +64,11 @@ const App = () => {
               <AdminTours />
             </AdminRoute>
           } />
+          <Route path="/admin/tours/add" element={
+            <AdminRoute>
+              <AddTour />
+            </AdminRoute>
+          } />
           <Route path="/admin/bookings" element={
             <AdminRoute>
               <AdminBookings />

@@ -116,55 +116,139 @@ export const createBooking = async (req, res) => {
 // @access  Private
 export const getUserBookings = async (req, res) => {
   try {
-    const { status, startDate, endDate, tourId } = req.query;
-    let whereClause = { user_id: req.user.id };
+    // Ensure user is authenticated
+    if (!req.user?.id) {
+      console.error('User not authenticated or missing user ID');
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+
+    // Log all query parameters for debugging
+    console.log('Raw query params:', JSON.stringify(req.query));
     
-    // Add filters if provided
-    if (status && status !== 'undefined') {
-      whereClause.status = status;
+    // Safely parse query parameters
+    const queryParams = {
+      status: String(req.query.status || '').trim(),
+      startDate: String(req.query.startDate || '').trim(),
+      endDate: String(req.query.endDate || '').trim(),
+      tourId: String(req.query.tourId || '').trim()
+    };
+    
+    console.log('Processed query params:', JSON.stringify(queryParams));
+    
+    // Base where clause with user ID
+    const whereClause = { user_id: req.user.id };
+    
+    // Add status filter if provided and valid
+    if (queryParams.status && !['undefined', 'null', ''].includes(queryParams.status)) {
+      whereClause.status = queryParams.status;
+      console.log('Added status filter:', queryParams.status);
     }
     
     // Handle date range filter
-    if (startDate && endDate && startDate !== 'undefined' && endDate !== 'undefined') {
-      whereClause.start_date = {
-        [Op.between]: [new Date(startDate), new Date(endDate)]
-      };
+    if (queryParams.startDate && queryParams.endDate && 
+        !['undefined', 'null', ''].includes(queryParams.startDate) &&
+        !['undefined', 'null', ''].includes(queryParams.endDate)) {
+      try {
+        const start = new Date(queryParams.startDate);
+        const end = new Date(queryParams.endDate);
+        
+        if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+          whereClause.start_date = {
+            [Op.between]: [start, end]
+          };
+          console.log('Added date range filter:', { start, end });
+        } else {
+          console.warn('Invalid date range:', { startDate: queryParams.startDate, endDate: queryParams.endDate });
+        }
+      } catch (dateError) {
+        console.error('Error processing date range:', dateError);
+      }
     }
     
     // Handle tour filter - only add if tourId is provided and valid
-    if (tourId && tourId !== 'undefined' && !isNaN(Number(tourId))) {
-      whereClause.tour_id = Number(tourId);
+    if (queryParams.tourId && !['undefined', 'null', ''].includes(queryParams.tourId)) {
+      console.log('Processing tourId:', queryParams.tourId);
+      
+      try {
+        const tourIdNum = parseInt(queryParams.tourId, 10);
+        
+        if (isNaN(tourIdNum)) {
+          console.warn(`Invalid tourId (not a number): ${queryParams.tourId}`);
+        } else if (tourIdNum <= 0) {
+          console.warn(`Invalid tourId (must be positive): ${tourIdNum}`);
+        } else {
+          // Don't verify tour existence here - let the query handle it
+          whereClause.tour_id = tourIdNum;
+          console.log(`Added tour filter: ${tourIdNum}`);
+        }
+      } catch (tourError) {
+        console.error('Error processing tourId:', tourError);
+      }
     }
 
-    const bookings = await Booking.findAll({
-      where: whereClause,
-      include: [
-        {
-          model: Tour,
-          as: 'tour',
-          attributes: ['title', 'destination', 'price', 'duration'],
-          include: [
-            {
-              model: TourImage,
-              as: 'images',
-              attributes: ['url'],
-              limit: 1
-            }
-          ]
+    console.log('Final where clause:', JSON.stringify(whereClause, null, 2));
+    
+    try {
+      // Build the query with explicit associations
+      const queryOptions = {
+        where: whereClause,
+        include: [
+          {
+            model: Tour,
+            as: 'tour',
+            attributes: ['id', 'title', 'destination', 'price', 'duration'],
+            required: false,
+            include: [
+              {
+                model: TourImage,
+                as: 'images',
+                attributes: ['id', 'url'],
+                limit: 1,
+                required: false
+              }
+            ]
+          }
+        ],
+        order: [['created_at', 'DESC']],
+        logging: (sql, queryObject) => {
+          console.log('Executing SQL:', sql);
+          if (queryObject?.bind) {
+            console.log('Query parameters:', queryObject.bind);
+          }
         }
-      ],
-      order: [['created_at', 'DESC']]
-    });
+      };
 
-    res.json({
-      success: true,
-      count: bookings.length,
-      data: bookings
-    });
+      console.log('Executing query with options:', JSON.stringify({
+        ...queryOptions,
+        // Don't log the entire where clause again to avoid cluttering logs
+        where: '...',
+        logging: '...'
+      }, null, 2));
+
+      const bookings = await Booking.findAll(queryOptions);
+
+      return res.json({
+        success: true,
+        count: bookings.length,
+        data: bookings
+      });
+    } catch (dbError) {
+      console.error('Database query error details:', {
+        message: dbError.message,
+        name: dbError.name,
+        stack: dbError.stack,
+        original: dbError.original?.message || 'No original error'
+      });
+      throw new Error(`Database error: ${dbError.message}`);
+    }
   } catch (error) {
+    console.error('Error in getUserBookings:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message || 'An error occurred while fetching bookings'
     });
   }
 };
@@ -174,17 +258,24 @@ export const getUserBookings = async (req, res) => {
 // @access  Private
 export const getBooking = async (req, res) => {
   try {
+    console.log('GET /api/bookings/:id', {
+      params: req.params,
+      user: req.user,
+      headers: req.headers
+    });
+    
     const booking = await Booking.findByPk(req.params.id, {
       include: [
         {
           model: Tour,
           as: 'tour',
-          attributes: ['title', 'destination', 'price', 'duration', 'max_group_size'],
+          attributes: ['id', 'title', 'description', 'destination', 'price', 'duration', 'max_group_size'],
           include: [
             {
               model: TourImage,
               as: 'images',
-              attributes: ['url']
+              attributes: ['url'],
+              limit: 1 // Only get the first image
             }
           ]
         },
@@ -197,23 +288,71 @@ export const getBooking = async (req, res) => {
     });
 
     if (!booking) {
+      console.log('Booking not found:', req.params.id);
       return res.status(404).json({
         success: false,
         message: 'Booking not found'
       });
     }
 
+    console.log('Found booking:', {
+      id: booking.id,
+      user_id: booking.user_id,
+      requesting_user_id: req.user.id,
+      user_role: req.user.role
+    });
+
     // Check if user owns the booking or is admin
     if (booking.user_id !== req.user.id && req.user.role !== 'admin') {
+      console.log('Unauthorized access attempt:', {
+        bookingUserId: booking.user_id,
+        requestingUserId: req.user.id,
+        userRole: req.user.role
+      });
       return res.status(403).json({
         success: false,
         message: 'Not authorized to access this booking'
       });
     }
 
+    // Format the response to match frontend expectations
+    const formattedBooking = {
+      id: booking.id,
+      status: booking.status,
+      startDate: booking.start_date,
+      numberOfPeople: {
+        adults: booking.adults || 0,
+        children: booking.children || 0
+      },
+      totalPrice: booking.total_price,
+      paymentMethod: booking.payment_method,
+      specialRequests: booking.special_requests,
+      cancellationReason: booking.cancellation_reason,
+      contactInfo: {
+        name: `${booking.user?.first_name || ''} ${booking.user?.last_name || ''}`.trim(),
+        email: booking.user?.email || '',
+        phone: booking.contact_phone || '',
+        specialRequests: booking.special_requests || ''
+      },
+      tour: {
+        id: booking.tour?.id,
+        title: booking.tour?.title || 'Tour not found',
+        description: booking.tour?.description || '',
+        location: booking.tour?.destination || '',
+        price: booking.tour?.price || 0,
+        duration: booking.tour?.duration || 0,
+        image: booking.tour?.images?.[0]?.url || '/default-tour.jpg'
+      },
+      user: {
+        id: booking.user_id,
+        name: `${booking.user?.first_name || ''} ${booking.user?.last_name || ''}`.trim(),
+        email: booking.user?.email || ''
+      }
+    };
+
     res.json({
       success: true,
-      data: booking
+      data: formattedBooking
     });
   } catch (error) {
     res.status(500).json({
