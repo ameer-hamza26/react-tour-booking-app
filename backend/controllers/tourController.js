@@ -7,35 +7,73 @@ import sequelize from '../config/database.js';
 // @access  Public
 export const getTours = async (req, res) => {
   try {
-    const { location, minPrice, maxPrice, date } = req.query;
+    console.log('Search query received:', req.query);
+    let { destination, minPrice, maxPrice, date } = req.query;
+    
+    // Initialize where clause with active tours only
     let whereClause = { is_active: true };
+    
+    console.log('Search params:', { destination, minPrice, maxPrice, date });
 
-    // Search by location
-    if (location) {
+    // Search by destination (case-insensitive partial match)
+    if (destination && destination.trim() !== '') {
       whereClause.destination = {
-        [Op.like]: `%${location}%`
+        [Op.iLike]: `%${destination.trim()}%`
       };
+      console.log('Searching for destination:', whereClause.destination);
     }
 
     // Filter by price range
     if (minPrice || maxPrice) {
       whereClause.price = {};
-      if (minPrice) whereClause.price[Op.gte] = Number(minPrice);
-      if (maxPrice) whereClause.price[Op.lte] = Number(maxPrice);
+      if (minPrice && !isNaN(minPrice)) whereClause.price[Op.gte] = Number(minPrice);
+      if (maxPrice && !isNaN(maxPrice)) whereClause.price[Op.lte] = Number(maxPrice);
+      
+      // If only one price is provided, remove the price filter
+      if (Object.keys(whereClause.price).length === 0) {
+        delete whereClause.price;
+      }
     }
 
+    // Filter by start date if provided
+    let startDateFilter = {};
+    if (date) {
+      try {
+        const searchDate = new Date(date);
+        if (!isNaN(searchDate)) {
+          const startOfDay = new Date(searchDate.setHours(0, 0, 0, 0));
+          const endOfDay = new Date(searchDate.setHours(23, 59, 59, 999));
+          
+          startDateFilter = {
+            start_date: {
+              [Op.between]: [startOfDay, endOfDay]
+            }
+          };
+          console.log('Filtering by date range:', startDateFilter);
+        }
+      } catch (dateError) {
+        console.error('Error parsing date:', dateError);
+      }
+    }
+
+    console.log('Final where clause:', JSON.stringify(whereClause, null, 2));
+    
+    // Find all tours matching the criteria
     const tours = await Tour.findAll({
       where: whereClause,
       include: [
         {
           model: TourImage,
           as: 'images',
-          attributes: ['url']
+          attributes: ['url'],
+          limit: 1 // Only get the first image for the listing
         },
         {
           model: TourStartDate,
           as: 'startDates',
-          attributes: ['start_date']
+          attributes: ['start_date'],
+          where: startDateFilter,
+          required: Object.keys(startDateFilter).length > 0
         },
         {
           model: TourFeature,

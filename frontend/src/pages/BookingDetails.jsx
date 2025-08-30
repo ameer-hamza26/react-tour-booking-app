@@ -71,11 +71,50 @@ const BookingDetails = () => {
   const fetchBookingDetails = async () => {
     try {
       setLoading(true);
+      setError('');
+      console.log('Fetching booking with ID:', bookingId);
+      
+      // Check if user is authenticated
+      const token = localStorage.getItem('token');
+      console.log('Current auth token:', token ? 'Token exists' : 'No token found');
+      
+      if (!token) {
+        throw new Error('Please log in to view booking details');
+      }
+      
       const response = await bookingApi.getBooking(bookingId);
-      setBooking(response.data);
+      console.log('API Response:', response);
+      
+      if (response && response.success) {
+        console.log('Booking data:', response.data);
+        setBooking(response.data);
+      } else {
+        const errorMsg = response?.message || 'Invalid response from server';
+        console.error('Error in response:', errorMsg);
+        setError(errorMsg);
+        toast.error(errorMsg);
+      }
     } catch (err) {
-      setError(err.message || 'Failed to fetch booking details');
-      toast.error('Failed to fetch booking details');
+      console.error('Error fetching booking:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+        stack: err.stack
+      });
+      
+      let errorMessage = 'Failed to fetch booking details';
+      if (err.response?.status === 401) {
+        errorMessage = 'Please log in to view this booking';
+      } else if (err.response?.status === 403) {
+        errorMessage = 'You are not authorized to view this booking';
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -87,7 +126,7 @@ const BookingDetails = () => {
         cancellationReason: cancelDialog.reason
       });
 
-      if (response.success) {
+      if (response.data && response.data.success) {
         toast.success('Booking cancelled successfully');
         setCancelDialog({ open: false, reason: '' });
         fetchBookingDetails(); // Refresh booking details
@@ -96,6 +135,7 @@ const BookingDetails = () => {
       toast.error(err.message || 'Failed to cancel booking');
     }
   };
+
 
   if (loading) {
     return (
@@ -166,7 +206,7 @@ const BookingDetails = () => {
                   </ListItemIcon>
                   <ListItemText
                     primary="Start Date"
-                    secondary={format(new Date(booking.startDate), 'PPP')}
+                    secondary={booking.startDate ? format(new Date(booking.startDate), 'PPP') : 'N/A'}
                   />
                 </ListItem>
                 <ListItem>
@@ -175,7 +215,9 @@ const BookingDetails = () => {
                   </ListItemIcon>
                   <ListItemText
                     primary="Number of People"
-                    secondary={`${booking.numberOfPeople.adults} Adults, ${booking.numberOfPeople.children} Children`}
+                    secondary={booking.numberOfPeople ? 
+                      `${booking.numberOfPeople.adults || 0} Adults, ${booking.numberOfPeople.children || 0} Children` : 
+                      'Not specified'}
                   />
                 </ListItem>
                 <ListItem>
@@ -184,7 +226,7 @@ const BookingDetails = () => {
                   </ListItemIcon>
                   <ListItemText
                     primary="Total Price"
-                    secondary={`$${booking.totalPrice.toFixed(2)}`}
+                    secondary={booking.totalPrice ? `$${parseFloat(booking.totalPrice).toFixed(2)}` : 'Not available'}
                   />
                 </ListItem>
               </List>
@@ -202,7 +244,7 @@ const BookingDetails = () => {
                   </ListItemIcon>
                   <ListItemText
                     primary="Name"
-                    secondary={booking.contactInfo.name}
+                    secondary={booking.contactInfo?.name || 'Not specified'}
                   />
                 </ListItem>
                 <ListItem>
@@ -211,7 +253,7 @@ const BookingDetails = () => {
                   </ListItemIcon>
                   <ListItemText
                     primary="Email"
-                    secondary={booking.contactInfo.email}
+                    secondary={booking.contactInfo?.email || 'Not specified'}
                   />
                 </ListItem>
                 <ListItem>
@@ -220,7 +262,7 @@ const BookingDetails = () => {
                   </ListItemIcon>
                   <ListItemText
                     primary="Phone"
-                    secondary={booking.contactInfo.phone}
+                    secondary={booking.contactInfo?.phone || 'Not specified'}
                   />
                 </ListItem>
               </List>
@@ -243,17 +285,15 @@ const BookingDetails = () => {
                     secondary={booking.paymentMethod}
                   />
                 </ListItem>
-                {booking.specialRequests && (
-                  <ListItem>
-                    <ListItemIcon>
-                      <DescriptionIcon />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary="Special Requests"
-                      secondary={booking.specialRequests}
-                    />
-                  </ListItem>
-                )}
+                <ListItem>
+                  <ListItemIcon>
+                    <DescriptionIcon />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Special Requests"
+                    secondary={booking.contactInfo?.specialRequests || 'None'}
+                  />
+                </ListItem>
                 {booking.cancellationReason && (
                   <ListItem>
                     <ListItemIcon>
@@ -272,7 +312,7 @@ const BookingDetails = () => {
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <Button
                   variant="outlined"
-                  onClick={() => navigate(`/tour/${booking.tour._id}`)}
+                  onClick={() => navigate(`/tour/${booking.tour.id}`)}
                   fullWidth
                 >
                   View Tour Details

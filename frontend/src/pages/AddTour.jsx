@@ -1,179 +1,446 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { TextField, Button, MenuItem, Select, FormControl, InputLabel, Grid, Box, Container, Typography } from '@mui/material';
-import { ToastContainer, toast } from 'react-toastify'; // Ensure correct import here
-import 'react-toastify/dist/ReactToastify.css'; // Import Toastify CSS
-import confirmImage from "../assets/images/confirmtour.png";
+import { useNavigate } from 'react-router-dom';
+import { 
+  TextField, 
+  Button, 
+  MenuItem, 
+  Grid, 
+  Box, 
+  Container, 
+  Typography, 
+  Paper,
+  FormControl,
+  InputLabel,
+  Select,
+  FormHelperText,
+  CircularProgress
+} from '@mui/material';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { tourApi } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const AddTour = () => {
+  const navigate = useNavigate();
+  const { user, isAdmin } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [features, setFeatures] = useState(['']);
+  const [startDates, setStartDates] = useState([new Date()]);
+  const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+
   const {
     register,
     handleSubmit,
     formState: { errors, isValid },
-    setValue
+    setValue,
+    control,
+    watch
   } = useForm({
-    mode: 'onChange', // Revalidate on each input change
+    mode: 'onChange',
+    defaultValues: {
+      title: '',
+      description: '',
+      destination: '',
+      price: '',
+      duration: 1,
+      maxGroupSize: 10,
+      difficulty: 'easy',
+      highlights: ''
+    }
   });
 
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    adults: 1,
-    children: 0,
-    paymentMethod: 'Credit Card',
-  });
+  // Redirect if not admin
+  useEffect(() => {
+    if (!user || !isAdmin) {
+      navigate('/');
+      toast.error('Unauthorized access');
+    }
+  }, [user, isAdmin, navigate]);
 
-  const onSubmit = (data) => {
-    console.log(data); // Process form data here
-    toast.success("Your Booking has been confirmed!"); // Show success notification
-  }
-  return (
-    <Container maxWidth="lg" sx={{ paddingTop: '2rem' }}>
-      {/* Toast Notification Container */}
-      <ToastContainer />
-      <Typography mb={5} variant="h4" align="center" gutterBottom>
-        Confirm Your Booking
-      </Typography>
-      <Grid container spacing={2}>
-        {/* Left side - Form */}
-        <Grid item xs={12} md={5}>
-          <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column' }}>
-            {/* Full Name */}
-            <TextField
-              label="Full Name"
-              name="name"
-              {...register('name', { required: 'Name is required' })}
-              fullWidth
-              error={!!errors.name}
-              helperText={errors.name?.message}
-              sx={{ marginBottom: '1rem' }}
-            />
+  const handleAddFeature = () => {
+    setFeatures([...features, '']);
+  };
 
-            {/* Email Address */}
-            <TextField
-              label="Email Address"
-              name="email"
-              {...register('email', { required: 'Email is required', pattern: { value: /^\S+@\S+$/, message: 'Invalid email format' } })}
-              fullWidth
-              error={!!errors.email}
-              helperText={errors.email?.message}
-              sx={{ marginBottom: '1rem' }}
-            />
+  const handleRemoveFeature = (index) => {
+    if (features.length > 1) {
+      const newFeatures = [...features];
+      newFeatures.splice(index, 1);
+      setFeatures(newFeatures);
+    }
+  };
 
-            {/* Phone Number */}
-            <TextField
-              label="Phone Number"
-              name="phone"
-              {...register('phone', { required: 'Phone number is required', pattern: { value: /^[0-9]{11}$/, message: 'Phone number should be 10 digits' } })}
-              fullWidth
-              error={!!errors.phone}
-              helperText={errors.phone?.message}
-              sx={{ marginBottom: '1rem' }}
-            />
+  const handleFeatureChange = (index, value) => {
+    const newFeatures = [...features];
+    newFeatures[index] = value;
+    setFeatures(newFeatures);
+  };
 
-           {/* Number of Adults and Children */}
-           <Grid container spacing={2} sx={{ marginBottom: '1rem' }}>
-  <Grid item xs={6}>
-    <TextField
-      label="Number of Adults"
-      name="adults"
-      type="number"
-      {...register('adults', { 
-        required: 'At least 1 adult is required', // Error message for adults
-        min: { value: 1, message: 'At least 1 adult is required' },
-        max: { value: 9, message: 'Maximum of 9 adults allowed' }
-      })}
-      value={formData.adults}
-      onChange={(e) => {
-        setFormData({ ...formData, adults: e.target.value });
-        setValue("adults", e.target.value); // Update react-hook-form state
-      }}
-      fullWidth
-      error={!!errors.adults}
-      helperText={errors.adults?.message}
-    />
-  </Grid>
-  <Grid item xs={6}>
-    <TextField
-      label="Number of Children"
-      name="children"
-      type="number"
-      {...register('children', { 
-        min: { value: 0, message: 'At least 1 child is required' }, // Only set min if you want children to have a lower limit
-        max: { value: 9, message: 'Maximum of 9 children allowed' }  // Optional, but set max for children
-      })}
-      value={formData.children}
-      onChange={(e) => {
-        setFormData({ ...formData, children: e.target.value });
-        setValue("children", e.target.value); // Update react-hook-form state
-      }}
-      fullWidth
-      error={!!errors.children}
-      helperText={errors.children?.message}
-    />
-  </Grid>
-</Grid>
+  const handleAddStartDate = () => {
+    setStartDates([...startDates, new Date()]);
+  };
 
+  const handleRemoveStartDate = (index) => {
+    if (startDates.length > 1) {
+      const newDates = [...startDates];
+      newDates.splice(index, 1);
+      setStartDates(newDates);
+    }
+  };
 
+  const handleDateChange = (date, index) => {
+    const newDates = [...startDates];
+    newDates[index] = date;
+    setStartDates(newDates);
+  };
 
-            {/* Payment Method */}
-            <FormControl fullWidth required sx={{ marginBottom: '1rem' }}>
-              <InputLabel>Payment Method</InputLabel>
-              <Select
-                label="Payment Method"
-                name="paymentMethod"
-                {...register('paymentMethod', { required: 'Payment method is required' })}
-                value={formData.paymentMethod}
-                onChange={(e) => {
-                  setFormData({ ...formData, paymentMethod: e.target.value });
-                  setValue("paymentMethod", e.target.value); // Update react-hook-form state
-                }}
-                error={!!errors.paymentMethod}
-              >
-                <MenuItem value="Credit Card">Credit Card</MenuItem>
-                <MenuItem value="Master Card">Master Card</MenuItem>
-                <MenuItem value="PayPal">PayPal</MenuItem>
-                <MenuItem value="Visa">Visa</MenuItem>
-              </Select>
-              {errors.paymentMethod && <Typography color="error">{errors.paymentMethod?.message}</Typography>}
-            </FormControl>
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImage(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
 
-            {/* Submit Button */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
-              <Button
-                variant="contained"
-                // color="primary"
-                type="submit"
-                sx={{ width: '100%' ,
-                  backgroundColor:theme => theme.palette.primary.light,
-                  '&:hover': {
-                    backgroundColor:theme => theme.palette.primary.dark },
-                    padding:"10px"
-                }}
-                disabled={!isValid} // Disable button when form is invalid
-              >
-                Confirm Booking
-              </Button>
-            </Box>
-          </Box>
-        </Grid>
-
-        {/* Right side - Image */}
-        <Grid item xs={12} md={7}>
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            <img 
-              src={confirmImage}
-              alt="Tour Image" 
-              style={{ width: '100%', maxWidth: '400px', borderRadius: '8px' }}
-            />
-          </Box>
-        </Grid>
-      </Grid>
-
+  const onSubmit = async (data) => {
+    if (!isValid) return;
+    
+    try {
+      setLoading(true);
       
-    </Container>
+      // Prepare form data for file upload
+      const formData = new FormData();
+      
+      // Add tour data
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          formData.append(key, value);
+        }
+      });
+      
+      // Add features and dates
+      features.forEach((feature, index) => {
+        if (feature.trim() !== '') {
+          formData.append('features', feature);
+        }
+      });
+      
+      startDates.forEach((date) => {
+        formData.append('startDates', new Date(date).toISOString());
+      });
+      
+      // Add image if exists
+      if (image) {
+        formData.append('image', image);
+      }
+
+      // Send request to create tour
+      await tourApi.createTour(formData);
+      
+      // Show success message
+      toast.success('Tour created successfully!');
+      
+      // Redirect to tours list after a short delay
+      setTimeout(() => {
+        navigate('/admin/tours');
+      }, 1500);
+      
+    } catch (error) {
+      console.error('Error creating tour:', error);
+      toast.error(error.response?.data?.message || 'Failed to create tour');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    } else if (!isAdmin) {
+      navigate('/');
+      toast.error('You do not have permission to access this page');
+    }
+  }, [user, isAdmin, navigate]);
+
+  if (!user || !isAdmin) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  return (
+    <LocalizationProvider dateAdapter={AdapterDateFns}>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Paper elevation={3} sx={{ p: 4 }}>
+          <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ mb: 4 }}>
+            Create New Tour
+          </Typography>
+          
+          <Box component="form" onSubmit={handleSubmit(onSubmit)}>
+            <Grid container spacing={3}>
+              {/* Tour Title */}
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Tour Title"
+                  {...register('title', { required: 'Title is required' })}
+                  error={!!errors.title}
+                  helperText={errors.title?.message}
+                />
+              </Grid>
+
+              {/* Description */}
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={4}
+                  label="Description"
+                  {...register('description', { required: 'Description is required' })}
+                  error={!!errors.description}
+                  helperText={errors.description?.message}
+                />
+              </Grid>
+
+              {/* Destination */}
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Destination"
+                  {...register('destination', { required: 'Destination is required' })}
+                  error={!!errors.destination}
+                  helperText={errors.destination?.message}
+                />
+              </Grid>
+
+              {/* Price */}
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Price (USD)"
+                  {...register('price', { 
+                    required: 'Price is required',
+                    min: { value: 1, message: 'Price must be greater than 0' }
+                  })}
+                  error={!!errors.price}
+                  helperText={errors.price?.message}
+                  InputProps={{
+                    startAdornment: <span style={{ marginRight: 8 }}>$</span>,
+                  }}
+                />
+              </Grid>
+
+              {/* Duration */}
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Duration (days)"
+                  {...register('duration', { 
+                    required: 'Duration is required',
+                    min: { value: 1, message: 'Duration must be at least 1 day' }
+                  })}
+                  error={!!errors.duration}
+                  helperText={errors.duration?.message}
+                />
+              </Grid>
+
+              {/* Max Group Size */}
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Max Group Size"
+                  {...register('maxGroupSize', { 
+                    required: 'Group size is required',
+                    min: { value: 1, message: 'Group size must be at least 1' }
+                  })}
+                  error={!!errors.maxGroupSize}
+                  helperText={errors.maxGroupSize?.message}
+                />
+              </Grid>
+
+              {/* Difficulty */}
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth error={!!errors.difficulty}>
+                  <InputLabel>Difficulty</InputLabel>
+                  <Select
+                    label="Difficulty"
+                    defaultValue="easy"
+                    {...register('difficulty', { required: 'Difficulty is required' })}
+                  >
+                    <MenuItem value="easy">Easy</MenuItem>
+                    <MenuItem value="medium">Medium</MenuItem>
+                    <MenuItem value="difficult">Difficult</MenuItem>
+                  </Select>
+                  {errors.difficulty && (
+                    <FormHelperText>{errors.difficulty.message}</FormHelperText>
+                  )}
+                </FormControl>
+              </Grid>
+
+              {/* Features */}
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom>
+                  Features
+                </Typography>
+                {features.map((feature, index) => (
+                  <Box key={index} display="flex" gap={2} mb={2}>
+                    <TextField
+                      fullWidth
+                      value={feature}
+                      onChange={(e) => handleFeatureChange(index, e.target.value)}
+                      placeholder="Add a feature (e.g., Air Conditioning)"
+                    />
+                    <Button 
+                      variant="outlined" 
+                      color="error"
+                      onClick={() => handleRemoveFeature(index)}
+                      disabled={features.length <= 1}
+                    >
+                      Remove
+                    </Button>
+                  </Box>
+                ))}
+                <Button 
+                  variant="outlined" 
+                  onClick={handleAddFeature}
+                  sx={{ mt: 1 }}
+                >
+                  Add Feature
+                </Button>
+              </Grid>
+
+              {/* Start Dates */}
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom>
+                  Available Start Dates
+                </Typography>
+                {startDates.map((date, index) => (
+                  <Box key={index} display="flex" gap={2} mb={2}>
+                    <DatePicker
+                      label="Start Date"
+                      value={date}
+                      onChange={(newDate) => handleDateChange(newDate, index)}
+                      renderInput={(params) => <TextField {...params} fullWidth />}
+                    />
+                    <Button 
+                      variant="outlined" 
+                      color="error"
+                      onClick={() => handleRemoveStartDate(index)}
+                      disabled={startDates.length <= 1}
+                      sx={{ minWidth: '120px' }}
+                    >
+                      Remove Date
+                    </Button>
+                  </Box>
+                ))}
+                <Button 
+                  variant="outlined" 
+                  onClick={handleAddStartDate}
+                  sx={{ mt: 1 }}
+                >
+                  Add Start Date
+                </Button>
+              </Grid>
+
+              {/* Highlights */}
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={3}
+                  label="Highlights (comma separated)"
+                  placeholder="Highlight 1, Highlight 2, Highlight 3"
+                  {...register('highlights')}
+                />
+              </Grid>
+
+              {/* Image Upload */}
+              <Grid item xs={12}>
+                <Box mb={2}>
+                  <input
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    id="tour-image-upload"
+                    type="file"
+                    onChange={handleImageChange}
+                  />
+                  <label htmlFor="tour-image-upload">
+                    <Button variant="outlined" component="span" fullWidth>
+                      Upload Tour Image
+                    </Button>
+                  </label>
+                  {imagePreview && (
+                    <Box mt={2} textAlign="center">
+                      <img 
+                        src={imagePreview} 
+                        alt="Preview" 
+                        style={{ maxWidth: '100%', maxHeight: '200px', marginTop: '10px' }} 
+                      />
+                    </Box>
+                  )}
+                </Box>
+              </Grid>
+
+              {/* Submit Button */}
+              <Grid item xs={12}>
+                <Button 
+                  type="submit" 
+                  variant="contained" 
+                  color="primary" 
+                  size="large"
+                  fullWidth
+                  disabled={loading}
+                  sx={{ py: 1.5, mt: 2 }}
+                >
+                  {loading ? <CircularProgress size={24} /> : 'Create Tour'}
+                </Button>
+              </Grid>
+            </Grid>
+          </Box>
+        </Paper>
+      </Container>
+    </LocalizationProvider>
   );
 };
 
-export default AddTour;
+// Higher Order Component for admin protection
+const withAdminProtection = (WrappedComponent) => {
+  const Wrapper = (props) => {
+    const { user, isAdmin } = useAuth();
+    const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+      if (!user || !isAdmin) {
+        navigate('/');
+        toast.error('You do not have permission to access this page');
+      } else {
+        setIsLoading(false);
+      }
+    }, [user, isAdmin, navigate]);
+
+    if (isLoading) {
+      return (
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+          <CircularProgress />
+        </Box>
+      );
+    }
+
+    return <WrappedComponent {...props} />;
+  };
+
+  return Wrapper;
+};
+
+export default withAdminProtection(AddTour);

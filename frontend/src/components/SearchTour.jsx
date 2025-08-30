@@ -198,20 +198,18 @@ const SearchTour = ({ onSearch }) => {
         throw new Error('Minimum price cannot be greater than maximum price');
       }
       
-      const formattedParams = {
-        destination: searchParams.destination.trim() || undefined,
-        startDate: searchParams.startDate ? searchParams.startDate.toISOString().split('T')[0] : undefined,
-        minPrice: searchParams.minPrice ? Number(searchParams.minPrice) : undefined,
-        maxPrice: searchParams.maxPrice ? Number(searchParams.maxPrice) : undefined
+      // Prepare search parameters
+      const searchFilters = {
+        destination: searchParams.destination ? searchParams.destination.trim() : '',
+        minPrice: searchParams.minPrice || '',
+        maxPrice: searchParams.maxPrice || '',
+        startDate: searchParams.startDate ? searchParams.startDate.toISOString().split('T')[0] : ''
       };
-
-      // Remove undefined values
-      const cleanParams = Object.fromEntries(
-        Object.entries(formattedParams).filter(([_, value]) => value !== undefined && value !== '')
-      );
-
-      const response = await tourApi.getTours(cleanParams);
-      onSearch(Array.isArray(response.data) ? response.data : []);
+      
+      console.log('Searching with filters:', searchFilters);
+      
+      // Call the parent's onSearch with the filters
+      onSearch(searchFilters);
     } catch (error) {
       const errorMessage = error.response?.data?.message || error.message || 'Error searching tours';
       setError(errorMessage);

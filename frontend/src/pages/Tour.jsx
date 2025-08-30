@@ -17,11 +17,33 @@ function Tour() {
   const fetchTours = async (filters = {}) => {
     try {
       setLoading(true);
-      setError(null); 
-      const data = await tourApi.getTours(filters);
-      // Normalize: API may return an array or an object with a data array
-      const list = Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
-      setTours(list);
+      setError(null);
+      
+      // Prepare filters for the API
+      const apiFilters = {
+        destination: filters.destination || '',
+        minPrice: filters.minPrice || '',
+        maxPrice: filters.maxPrice || '',
+        date: filters.startDate ? new Date(filters.startDate).toISOString().split('T')[0] : ''
+      };
+      
+      console.log('Fetching tours with filters:', apiFilters);
+      
+      const response = await tourApi.getTours(apiFilters);
+      console.log('Received tour data:', response);
+      
+      // Handle different response formats
+      let toursData = [];
+      if (Array.isArray(response)) {
+        toursData = response;
+      } else if (response && Array.isArray(response.data)) {
+        toursData = response.data;
+      } else if (response && response.data && response.data.data) {
+        toursData = response.data.data;
+      }
+      
+      console.log('Processed tours data:', toursData);
+      setTours(toursData);
     } catch (err) {
       setError(err.message || 'Failed to fetch tours. Please try again.');
       console.error('Error fetching tours:', err);

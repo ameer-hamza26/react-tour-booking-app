@@ -88,7 +88,10 @@ const BookingForm = () => {
     }
   }, [tour, numberOfPeople]);
 
-  const handleNext = () => {
+  const handleNext = (e) => {
+    if (e) {
+      e.preventDefault();
+    }
     setActiveStep((prevStep) => prevStep + 1);
   };
 
@@ -410,19 +413,18 @@ const BookingForm = () => {
           ))}
         </Stepper>
 
-        <form onSubmit={handleSubmit(onSubmit)}>
-          {renderStepContent(activeStep)}
-
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4, gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
-            <Button
-              disabled={activeStep === 0}
-              onClick={handleBack}
-              variant="outlined"
-              sx={{ px: 3, py: 1.1, width: { xs: '100%', sm: 'auto' } }}
-            >
-              Back
-            </Button>
-            {activeStep === steps.length - 1 ? (
+        {activeStep === steps.length - 1 ? (
+          <form onSubmit={handleSubmit(onSubmit)}>
+            {renderStepContent(activeStep)}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4, gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+              <Button
+                disabled={activeStep === 0}
+                onClick={handleBack}
+                variant="outlined"
+                sx={{ px: 3, py: 1.1, width: { xs: '100%', sm: 'auto' } }}
+              >
+                Back
+              </Button>
               <Button
                 type="submit"
                 variant="contained"
@@ -439,11 +441,25 @@ const BookingForm = () => {
               >
                 {loading ? <CircularProgress size={24} /> : 'Confirm Booking'}
               </Button>
-            ) : (
+            </Box>
+          </form>
+        ) : (
+          <div>
+            {renderStepContent(activeStep)}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4, gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+              <Button
+                disabled={activeStep === 0}
+                onClick={handleBack}
+                variant="outlined"
+                sx={{ px: 3, py: 1.1, width: { xs: '100%', sm: 'auto' } }}
+              >
+                Back
+              </Button>
               <Button
                 variant="contained"
                 onClick={handleNext}
                 disabled={!isValid}
+                type="button"
                 sx={{
                   px: 3.5,
                   py: 1.1,
@@ -456,9 +472,9 @@ const BookingForm = () => {
               >
                 Next
               </Button>
-            )}
-          </Box>
-        </form>
+            </Box>
+          </div>
+        )}
       </Paper>
     </Container>
   );

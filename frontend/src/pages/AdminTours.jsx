@@ -183,7 +183,7 @@ const AdminTours = () => {
           variant="contained"
           size="large"
           startIcon={<AddIcon />}
-          onClick={() => navigate('/addTour')}
+          onClick={() => navigate('/admin/tours/add')}
         >
           Add New Tour
         </Button>

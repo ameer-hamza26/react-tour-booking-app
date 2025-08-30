@@ -57,10 +57,10 @@ const sampleTours = [
 ];
 
 const adminUser = {
-  first_name: 'Admin',
-  last_name: 'User',
-  email: 'admin@tourbay.com',
-  password: 'admin123', // will be hashed by model hook
+  first_name: 'atif',
+  last_name: 'khan',
+  email: 'atif@tourbay.com',
+  password: '123456', // will be hashed by model hook
   role: 'admin'
 };
 
