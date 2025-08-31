@@ -2,106 +2,28 @@ import { Tour, TourImage, TourStartDate, TourFeature } from '../model/index.js';
 import { Op } from 'sequelize';
 import sequelize from '../config/database.js';
 
-// @desc    Get all tours
+// @desc    Get all active tours
 // @route   GET /api/tours
 // @access  Public
 export const getTours = async (req, res) => {
   try {
-    console.log('Search query received:', req.query);
-    let { destination, minPrice, maxPrice, date } = req.query;
-    
-    // Initialize where clause with active tours only
-    let whereClause = { is_active: true };
-    
-    console.log('Search params:', { destination, minPrice, maxPrice, date });
-
-    // Search by destination (case-insensitive partial match)
-    if (destination && destination.trim() !== '') {
-      whereClause.destination = {
-        [Op.iLike]: `%${destination.trim()}%`
-      };
-      console.log('Searching for destination:', whereClause.destination);
-    }
-
-    // Filter by price range
-    if (minPrice || maxPrice) {
-      whereClause.price = {};
-      if (minPrice && !isNaN(minPrice)) whereClause.price[Op.gte] = Number(minPrice);
-      if (maxPrice && !isNaN(maxPrice)) whereClause.price[Op.lte] = Number(maxPrice);
-      
-      // If only one price is provided, remove the price filter
-      if (Object.keys(whereClause.price).length === 0) {
-        delete whereClause.price;
-      }
-    }
-
-    // Filter by start date if provided
-    let startDateFilter = {};
-    if (date) {
-      try {
-        const searchDate = new Date(date);
-        if (!isNaN(searchDate)) {
-          const startOfDay = new Date(searchDate.setHours(0, 0, 0, 0));
-          const endOfDay = new Date(searchDate.setHours(23, 59, 59, 999));
-          
-          startDateFilter = {
-            start_date: {
-              [Op.between]: [startOfDay, endOfDay]
-            }
-          };
-          console.log('Filtering by date range:', startDateFilter);
-        }
-      } catch (dateError) {
-        console.error('Error parsing date:', dateError);
-      }
-    }
-
-    console.log('Final where clause:', JSON.stringify(whereClause, null, 2));
-    
-    // Find all tours matching the criteria
     const tours = await Tour.findAll({
-      where: whereClause,
+      where: { is_active: true },
       include: [
-        {
-          model: TourImage,
-          as: 'images',
-          attributes: ['url'],
-          limit: 1 // Only get the first image for the listing
-        },
-        {
-          model: TourStartDate,
-          as: 'startDates',
-          attributes: ['start_date'],
-          where: startDateFilter,
-          required: Object.keys(startDateFilter).length > 0
-        },
-        {
-          model: TourFeature,
-          as: 'features',
-          attributes: ['feature']
-        }
+        { model: TourImage, as: 'images' },
+        { model: TourStartDate, as: 'startDates' },
+        { model: TourFeature, as: 'features' }
       ],
       order: [['created_at', 'DESC']]
     });
 
-    // Filter by date if provided
-    let filteredTours = tours;
-    if (date) {
-      const searchDate = new Date(date);
-      filteredTours = tours.filter(tour => 
-        tour.startDates.some(startDate => 
-          new Date(startDate.start_date) >= searchDate
-        )
-      );
-    }
-
-    res.json({
+    res.status(200).json({
       success: true,
-      count: filteredTours.length,
-      data: filteredTours
+      count: tours.length,
+      data: tours
     });
   } catch (error) {
-    console.error('Error in getTours:', error);
+    console.error('Error fetching tours:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching tours',
@@ -110,56 +32,61 @@ export const getTours = async (req, res) => {
   }
 };
 
-// @desc    Get single tour
+// @desc    Get single active tour
 // @route   GET /api/tours/:id
 // @access  Public
 export const getTour = async (req, res) => {
   try {
-    const tour = await Tour.findByPk(req.params.id, {
+    const { id } = req.params;
+    const tour = await Tour.findOne({
+      where: { 
+        id,
+        is_active: true 
+      },
       include: [
-        {
-          model: TourImage,
-          as: 'images',
-          attributes: ['url']
-        },
-        {
-          model: TourStartDate,
-          as: 'startDates',
-          attributes: ['start_date']
-        },
-        {
-          model: TourFeature,
-          as: 'features',
-          attributes: ['feature']
-        }
+        { model: TourImage, as: 'images' },
+        { model: TourStartDate, as: 'startDates' },
+        { model: TourFeature, as: 'features' }
       ]
     });
-    
+
     if (!tour) {
       return res.status(404).json({
         success: false,
-        message: 'Tour not found'
+        message: 'Tour not found or not active'
       });
     }
 
-    res.json({
+    res.status(200).json({
       success: true,
       data: tour
     });
   } catch (error) {
+    console.error('Error fetching tour:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: 'Error fetching tour',
+      error: error.message
     });
   }
 };
 
-// @desc    Create tour
-// @route   POST /api/tours
+// @desc    Create tour (Admin only)
+// @route   POST /api/admin/tours
 // @access  Private/Admin
 export const createTour = async (req, res) => {
   try {
-    const { images, startDates, features, ...tourData } = req.body;
+    // Parse the tour data from the form
+    const tourData = req.body.tour ? JSON.parse(req.body.tour) : req.body;
+    
+    // If there's an uploaded file, add its path to the images array
+    if (req.file) {
+      const imageUrl = `/uploads/${req.file.filename}`;
+      if (!tourData.images) {
+        tourData.images = [];
+      }
+      tourData.images.push(imageUrl);
+    }
 
     // Check if a similar active tour already exists (case-insensitive by title + destination)
     if (tourData.title && tourData.destination) {
@@ -174,64 +101,73 @@ export const createTour = async (req, res) => {
       if (existingTour) {
         return res.status(409).json({
           success: false,
-          message: 'Tour already exists',
+          message: 'A tour with this title and destination already exists',
           data: existingTour
         });
       }
     }
 
-    // Create tour
+    // Create the tour with the provided data
     const tour = await Tour.create(tourData);
 
-    // Create related data if provided
-    if (images && images.length > 0) {
-      await TourImage.bulkCreate(
-        images.map(url => ({ tour_id: tour.id, url }))
+    // If there are features, create them
+    if (tourData.features && tourData.features.length > 0) {
+      await Promise.all(
+        tourData.features.map(feature =>
+          TourFeature.create({
+            ...feature,
+            tourId: tour.id
+          })
+        )
       );
     }
 
-    if (startDates && startDates.length > 0) {
-      await TourStartDate.bulkCreate(
-        startDates.map(date => ({ tour_id: tour.id, start_date: date }))
+    // If there are start dates, create them
+    if (tourData.startDates && tourData.startDates.length > 0) {
+      await Promise.all(
+        tourData.startDates.map(date =>
+          TourStartDate.create({
+            date,
+            tourId: tour.id
+          })
+        )
       );
     }
 
-    if (features && features.length > 0) {
-      await TourFeature.bulkCreate(
-        features.map(feature => ({ tour_id: tour.id, feature }))
-      );
-    }
-
-    // Fetch the complete tour with related data
-    const completeTour = await Tour.findByPk(tour.id, {
+    // Reload the tour with all associated data
+    const createdTour = await Tour.findByPk(tour.id, {
       include: [
-        { model: TourImage, as: 'images' },
+        { model: TourFeature, as: 'features' },
         { model: TourStartDate, as: 'startDates' },
-        { model: TourFeature, as: 'features' }
+        { model: TourImage, as: 'images' }
       ]
     });
-    
+
     res.status(201).json({
       success: true,
-      data: completeTour
+      message: 'Tour created successfully',
+      data: createdTour
     });
   } catch (error) {
+    console.error('Error creating tour:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: 'Error creating tour',
+      error: error.message
     });
   }
 };
 
-// @desc    Update tour
-// @route   PUT /api/tours/:id
+// @desc    Update tour (Admin only)
+// @route   PUT /api/admin/tours/:id
 // @access  Private/Admin
-
 export const updateTour = async (req, res) => {
   try {
-    const { images, startDates, features, ...tourData } = req.body;
-    
-    const tour = await Tour.findByPk(req.params.id);
+    const { id } = req.params;
+    const tourData = req.body.tour ? JSON.parse(req.body.tour) : req.body;
+
+    // Find the tour
+    const tour = await Tour.findByPk(id);
     if (!tour) {
       return res.status(404).json({
         success: false,
@@ -239,96 +175,155 @@ export const updateTour = async (req, res) => {
       });
     }
 
-    // Update tour data
+    // Handle file upload if exists
+    if (req.file) {
+      const imageUrl = `/uploads/${req.file.filename}`;
+      if (!tourData.images) {
+        tourData.images = [];
+      }
+      tourData.images = [...tourData.images, imageUrl];
+    }
+
+    // Update the tour
     await tour.update(tourData);
 
-    // Update related data if provided
-    if (images !== undefined) {
-      await TourImage.destroy({ where: { tour_id: tour.id } });
-      if (images.length > 0) {
-        await TourImage.bulkCreate(
-          images.map(url => ({ tour_id: tour.id, url }))
-        );
-      }
+    // Update features if provided
+    if (tourData.features) {
+      // Delete existing features
+      await TourFeature.destroy({ where: { tourId: id } });
+      
+      // Create new features
+      await Promise.all(
+        tourData.features.map(feature =>
+          TourFeature.create({
+            ...feature,
+            tourId: id
+          })
+        )
+      );
     }
 
-    if (startDates !== undefined) {
-      await TourStartDate.destroy({ where: { tour_id: tour.id } });
-      if (startDates.length > 0) {
-        await TourStartDate.bulkCreate(
-          startDates.map(date => ({ tour_id: tour.id, start_date: date }))
-        );
-      }
+    // Update start dates if provided
+    if (tourData.startDates) {
+      // Delete existing start dates
+      await TourStartDate.destroy({ where: { tourId: id } });
+      
+      // Create new start dates
+      await Promise.all(
+        tourData.startDates.map(date =>
+          TourStartDate.create({
+            date,
+            tourId: id
+          })
+        )
+      );
     }
 
-    if (features !== undefined) {
-      await TourFeature.destroy({ where: { tour_id: tour.id } });
-      if (features.length > 0) {
-        await TourFeature.bulkCreate(
-          features.map(feature => ({ tour_id: tour.id, feature }))
-        );
-      }
-    }
-
-    // Fetch updated tour with related data
-    const updatedTour = await Tour.findByPk(tour.id, {
-      include: [
-        { model: TourImage, as: 'images' },
-        { model: TourStartDate, as: 'startDates' },
-        { model: TourFeature, as: 'features' }
-      ]
+    // Reload the tour with all associated data
+    const updatedTour = await Tour.findByPk(id, {
+      include: [TourFeature, TourStartDate, TourImage]
     });
 
-    res.json({
+    res.status(200).json({
       success: true,
+      message: 'Tour updated successfully',
       data: updatedTour
     });
   } catch (error) {
+    console.error('Error updating tour:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: 'Error updating tour',
+      error: error.message
     });
   }
 };
 
-// @desc    Delete tour
-// @route   DELETE /api/tours/:id
+// @desc    Delete tour (Admin only)
+// @route   DELETE /api/admin/tours/:id
 // @access  Private/Admin
 export const deleteTour = async (req, res) => {
-  const t = await sequelize.transaction();
-  
   try {
-    // Store the transaction on the request object for use in the middleware
-    req.transaction = t;
-    
-    const tour = await Tour.findByPk(req.params.id, { transaction: t });
+    const { id } = req.params;
 
+    // Find the tour
+    const tour = await Tour.findByPk(id);
     if (!tour) {
-      await t.rollback();
       return res.status(404).json({
         success: false,
         message: 'Tour not found'
       });
     }
 
-    // Delete the tour
-    await tour.destroy({ transaction: t });
-    
-    // The sequence reset is now handled by the withSequenceReset middleware
-    await t.commit();
-    
-    // The middleware will handle the response
+    // Soft delete by setting is_active to false
+    await tour.update({ is_active: false });
+
     res.status(200).json({
       success: true,
       message: 'Tour deleted successfully'
     });
   } catch (error) {
-    await t.rollback();
     console.error('Error deleting tour:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to delete tour',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: 'Error deleting tour',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Get all tours (Admin only - includes inactive)
+// @route   GET /api/admin/tours
+// @access  Private/Admin
+export const getAllTours = async (req, res) => {
+  try {
+    const tours = await Tour.findAll({
+      include: [TourFeature, TourStartDate, TourImage],
+      order: [['createdAt', 'DESC']]
+    });
+
+    res.status(200).json({
+      success: true,
+      count: tours.length,
+      data: tours
+    });
+  } catch (error) {
+    console.error('Error fetching tours:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching tours',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Get single tour (Admin only - includes inactive)
+// @route   GET /api/admin/tours/:id
+// @access  Private/Admin
+export const getTourById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const tour = await Tour.findByPk(id, {
+      include: [TourFeature, TourStartDate, TourImage]
+    });
+
+    if (!tour) {
+      return res.status(404).json({
+        success: false,
+        message: 'Tour not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: tour
+    });
+  } catch (error) {
+    console.error('Error fetching tour:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching tour',
+      error: error.message
     });
   }
 };

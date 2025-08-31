@@ -2,6 +2,8 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Box, CircularProgress, Typography } from '@mui/material';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const AdminRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -24,11 +26,20 @@ const AdminRoute = ({ children }) => {
     );
   }
 
+  console.log('AdminRoute - User:', user);
+  console.log('AdminRoute - User role:', user?.role);
+  console.log('AdminRoute - Loading:', loading);
+
   if (!user) {
-    return <Navigate to="/login" replace />;
+    console.log('AdminRoute - No user, redirecting to login');
+    // Redirect to login if not authenticated
+    return <Navigate to="/login" state={{ from: window.location.pathname }} replace />;
   }
 
   if (user.role !== 'admin') {
+    console.log('AdminRoute - User is not admin, redirecting to home');
+    // Redirect to home if not admin
+    toast.error('You do not have permission to access this page');
     return <Navigate to="/" replace />;
   }
 

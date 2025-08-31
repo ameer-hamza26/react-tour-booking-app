@@ -129,6 +129,7 @@ const BookingDetails = () => {
       if (response.data && response.data.success) {
         toast.success('Booking cancelled successfully');
         setCancelDialog({ open: false, reason: '' });
+        navigate('/bookings');
         fetchBookingDetails(); // Refresh booking details
       }
     } catch (err) {

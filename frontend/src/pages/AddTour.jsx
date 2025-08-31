@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -26,7 +26,6 @@ import { useAuth } from '../context/AuthContext';
 
 const AddTour = () => {
   const navigate = useNavigate();
-  const { user, isAdmin } = useAuth();
   const [loading, setLoading] = useState(false);
   const [features, setFeatures] = useState(['']);
   const [startDates, setStartDates] = useState([new Date()]);
@@ -37,9 +36,7 @@ const AddTour = () => {
     register,
     handleSubmit,
     formState: { errors, isValid },
-    setValue,
-    control,
-    watch
+    reset
   } = useForm({
     mode: 'onChange',
     defaultValues: {
@@ -53,14 +50,6 @@ const AddTour = () => {
       highlights: ''
     }
   });
-
-  // Redirect if not admin
-  useEffect(() => {
-    if (!user || !isAdmin) {
-      navigate('/');
-      toast.error('Unauthorized access');
-    }
-  }, [user, isAdmin, navigate]);
 
   const handleAddFeature = () => {
     setFeatures([...features, '']);
@@ -115,23 +104,22 @@ const AddTour = () => {
       // Prepare form data for file upload
       const formData = new FormData();
       
-      // Add tour data
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          formData.append(key, value);
-        }
-      });
+      // Prepare tour data with correct field names
+      const tourData = {
+        title: data.title,
+        description: data.description,
+        destination: data.destination,
+        price: Number(data.price),
+        duration: Number(data.duration),
+        max_group_size: Number(data.maxGroupSize),
+        difficulty: data.difficulty,
+        highlights: data.highlights || '',
+        features: features.filter(f => f && f.trim() !== ''),
+        start_dates: startDates.map(date => new Date(date).toISOString())
+      };
       
-      // Add features and dates
-      features.forEach((feature, index) => {
-        if (feature.trim() !== '') {
-          formData.append('features', feature);
-        }
-      });
-      
-      startDates.forEach((date) => {
-        formData.append('startDates', new Date(date).toISOString());
-      });
+      // Append all tour data to formData as JSON string
+      formData.append('tour', JSON.stringify(tourData));
       
       // Add image if exists
       if (image) {
@@ -139,41 +127,32 @@ const AddTour = () => {
       }
 
       // Send request to create tour
-      await tourApi.createTour(formData);
+      const response = await tourApi.createTour(formData);
       
-      // Show success message
-      toast.success('Tour created successfully!');
-      
-      // Redirect to tours list after a short delay
-      setTimeout(() => {
+      if (response.success) {
+        // Show success message
+        toast.success('Tour created successfully!');
+        
+        // Reset form
+        reset();
+        setFeatures(['']);
+        setStartDates([new Date()]);
+        setImage(null);
+        
+        // Redirect to tours list
         navigate('/admin/tours');
-      }, 1500);
-      
+      } else {
+        throw new Error(response.message || 'Failed to create tour');
+      }
     } catch (error) {
       console.error('Error creating tour:', error);
-      toast.error(error.response?.data?.message || 'Failed to create tour');
+      toast.error(error.response?.data?.message || error.message || 'Failed to create tour');
     } finally {
       setLoading(false);
     }
   };
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!user) {
-      navigate('/login');
-    } else if (!isAdmin) {
-      navigate('/');
-      toast.error('You do not have permission to access this page');
-    }
-  }, [user, isAdmin, navigate]);
 
-  if (!user || !isAdmin) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-        <CircularProgress />
-      </Box>
-    );
-  }
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -413,34 +392,4 @@ const AddTour = () => {
   );
 };
 
-// Higher Order Component for admin protection
-const withAdminProtection = (WrappedComponent) => {
-  const Wrapper = (props) => {
-    const { user, isAdmin } = useAuth();
-    const navigate = useNavigate();
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-      if (!user || !isAdmin) {
-        navigate('/');
-        toast.error('You do not have permission to access this page');
-      } else {
-        setIsLoading(false);
-      }
-    }, [user, isAdmin, navigate]);
-
-    if (isLoading) {
-      return (
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-          <CircularProgress />
-        </Box>
-      );
-    }
-
-    return <WrappedComponent {...props} />;
-  };
-
-  return Wrapper;
-};
-
-export default withAdminProtection(AddTour);
+export default AddTour;

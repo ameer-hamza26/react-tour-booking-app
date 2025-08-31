@@ -15,12 +15,22 @@ export const AuthProvider = ({ children }) => {
     try {
       const token = localStorage.getItem('token');
       if (token) {
+        console.log('Token found, fetching user data...');
         const response = await api.get('/auth/me');
-        setUser(response.data.data);
+        console.log('User data from /auth/me:', response.data);
+        if (response.data && response.data.data) {
+          setUser(response.data.data);
+        } else {
+          console.error('Invalid user data format:', response.data);
+          localStorage.removeItem('token');
+        }
+      } else {
+        console.log('No token found in localStorage');
       }
     } catch (error) {
       console.error('Error checking user:', error);
       localStorage.removeItem('token');
+      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -28,12 +38,19 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
+      console.log('Attempting login with email:', email);
       const response = await api.post('/auth/login', { email, password });
+      console.log('Login response:', response.data);
       const { token, user } = response.data.data;
+      console.log('Setting user in context:', user);
       localStorage.setItem('token', token);
       setUser(user);
-      return { success: true };
+      return { 
+        success: true,
+        user
+      };
     } catch (error) {
+      console.error('Login error:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Login failed'
