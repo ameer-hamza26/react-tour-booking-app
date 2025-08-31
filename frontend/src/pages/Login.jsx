@@ -30,7 +30,12 @@ const Login = () => {
     try {
       const result = await login(email, password);
       if (result.success) {
-        navigate('/');
+        // Redirect to admin dashboard if user is admin, otherwise to home
+        if (result.user?.role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
       } else {
         setError(result.message);
       }

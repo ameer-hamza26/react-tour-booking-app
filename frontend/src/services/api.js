@@ -24,12 +24,21 @@ export const tourApi = {
   },
 
   // Create new tour (admin only)
-  createTour: async (tourData) => {
+  createTour: async (formData) => {
     try {
-      const response = await api.post('/tours', tourData);
+      const response = await api.post('/tours', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
       return response.data;
     } catch (error) {
-      throw error.response?.data || { message: 'Error creating tour' };
+      console.error('Error in createTour:', error);
+      // Return the error response data if available
+      if (error.response?.data) {
+        throw error.response.data;
+      }
+      throw { message: error.message || 'Error creating tour' };
     }
   },
 
@@ -136,7 +145,7 @@ export const authApi = {
       const response = await api.post('/auth/register', userData);
       return response.data;
     } catch (error) {
-      throw error.response?.data || { message: 'Error registering user' };
+      throw error.response?.data || { message: 'Registration failed' };
     }
   },
 
@@ -146,7 +155,7 @@ export const authApi = {
       const response = await api.post('/auth/login', credentials);
       return response.data;
     } catch (error) {
-      throw error.response?.data || { message: 'Error logging in' };
+      throw error.response?.data || { message: 'Login failed' };
     }
   },
 
@@ -156,7 +165,68 @@ export const authApi = {
       const response = await api.get('/auth/me');
       return response.data;
     } catch (error) {
-      throw error.response?.data || { message: 'Error fetching user data' };
+      throw error.response?.data || { message: 'Failed to fetch user data' };
     }
   }
-}; 
+};
+
+// Admin API calls
+export const adminApi = {
+  // Get all users (admin only)
+  getAllUsers: async () => {
+    try {
+      const response = await api.get('/admin/users');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error fetching users' };
+    }
+  },
+
+  // Get user statistics (admin only)
+  getUserStats: async () => {
+    try {
+      const response = await api.get('/admin/users/stats');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error fetching user statistics' };
+    }
+  },
+
+  // Get user statistics with detailed analytics
+  getUserDetailedStats: async () => {
+    try {
+      const response = await api.get('/admin/users/statistics');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error fetching detailed user statistics' };
+    }
+  },
+
+  // Get dashboard statistics
+  getDashboardStats: async () => {
+    try {
+      const response = await api.get('/admin/dashboard');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error fetching dashboard stats' };
+    }
+  },
+
+  // Get recent bookings
+  getRecentBookings: async (limit = 5) => {
+    try {
+      const response = await api.get(`/admin/bookings/recent?limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error fetching recent bookings' };
+    }
+  }
+};
+
+// Export all API modules
+export default {
+  tours: tourApi,
+  bookings: bookingApi,
+  auth: authApi,
+  admin: adminApi
+};

@@ -1,4 +1,5 @@
 import express from 'express';
+import multer from '../utils/multer.js';
 import {
   getTours,
   getTour,
@@ -16,7 +17,14 @@ router.get('/', getTours);
 router.get('/:id', getTour);
 
 // Protected routes (Admin only)
-router.post('/', protect, authorize('admin'), createTour);
+router.post(
+  '/',
+  protect,
+  authorize('admin'),
+  multer.single('image'),
+  createTour
+);
+
 router.put('/:id', protect, authorize('admin'), updateTour);
 router.delete('/:id', protect, authorize('admin'), withSequenceReset('tours', 'id'), deleteTour);
 

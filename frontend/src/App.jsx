@@ -79,7 +79,7 @@ const App = () => {
               <AdminUsers />
             </AdminRoute>
           } />
-          <Route path="/addTour" element={
+          <Route path="/admin/tours/add" element={
             <AdminRoute>
               <AddTour />
             </AdminRoute>
