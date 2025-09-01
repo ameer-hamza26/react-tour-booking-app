@@ -37,11 +37,9 @@ import {
   Cancel as CancelIcon,
   Person as PersonIcon
 } from '@mui/icons-material';
-import { useAuth } from '../context/AuthContext';
 import api from '../utils/axios';
 
 const AdminBookings = () => {
-  const { user } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [filteredBookings, setFilteredBookings] = useState([]);
   const [loading, setLoading] = useState(true);

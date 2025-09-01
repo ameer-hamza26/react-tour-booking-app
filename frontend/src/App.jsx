@@ -1,5 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from './context/AuthContext';
 import HomePage from './pages/HomePage';
 import ExploreNow from './pages/ExploreNow';
@@ -18,7 +20,7 @@ import BookingForm from './components/BookingForm';
 import BookingDetails from './pages/BookingDetails';
 import MyBookings from './pages/MyBookings';
 import AdminDashboard from './pages/AdminDashboard';
-import AdminTours from './pages/AdminTours';
+import AdminTours from "./pages/AdminTours";
 import AdminBookings from './pages/AdminBookings';
 import AdminUsers from './pages/AdminUsers';
 
@@ -27,6 +29,17 @@ const App = () => {
     <AuthProvider>
       <Router>
         <Navbar />
+        <ToastContainer 
+          position="top-center"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
