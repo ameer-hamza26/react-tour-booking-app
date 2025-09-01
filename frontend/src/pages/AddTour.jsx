@@ -96,7 +96,10 @@ const AddTour = () => {
   };
 
   const onSubmit = async (data) => {
-    if (!isValid) return;
+    if (!isValid) {
+      toast.error('Please fill in all required fields correctly');
+      return;
+    }
     
     try {
       setLoading(true);
@@ -126,27 +129,59 @@ const AddTour = () => {
         formData.append('image', image);
       }
 
-      // Send request to create tour
-      const response = await tourApi.createTour(formData);
+      // Show loading toast
+      const toastId = toast.loading('Creating tour...');
       
-      if (response.success) {
-        // Show success message
-        toast.success('Tour created successfully!');
+      try {
+        // Send request to create tour
+        const response = await tourApi.createTour(formData);
         
-        // Reset form
-        reset();
-        setFeatures(['']);
-        setStartDates([new Date()]);
-        setImage(null);
+        if (response.success) {
+          // Update loading toast to success
+          toast.update(toastId, {
+            render: 'Tour created successfully!',
+            type: 'success',
+            isLoading: false,
+            autoClose: 3000,
+            closeButton: true
+          });
+          
+          // Reset form
+          reset();
+          setFeatures(['']);
+          setStartDates([new Date()]);
+          setImage(null);
+          setImagePreview('');
+          
+          // Redirect to tours list after a short delay
+          setTimeout(() => {
+            navigate('/admin/tours');
+          }, 1500);
+        } else {
+          throw new Error(response.message || 'Failed to create tour');
+        }
+      } catch (error) {
+        console.error('Error creating tour:', error);
+        // Update loading toast to error
+        toast.update(toastId, {
+          render: error.response?.data?.message || error.message || 'Failed to create tour',
+          type: 'error',
+          isLoading: false,
+          autoClose: 5000,
+          closeButton: true
+        });
         
-        // Redirect to tours list
-        navigate('/admin/tours');
-      } else {
-        throw new Error(response.message || 'Failed to create tour');
+        // If it's a duplicate tour error, show more details
+        if (error.response?.data?.code === 'DUPLICATE_TOUR') {
+          toast.warning('A tour with this title and destination already exists', {
+            autoClose: 7000,
+            closeButton: true
+          });
+        }
       }
     } catch (error) {
-      console.error('Error creating tour:', error);
-      toast.error(error.response?.data?.message || error.message || 'Failed to create tour');
+      console.error('Unexpected error:', error);
+      toast.error('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }

@@ -164,9 +164,43 @@ export const createTour = async (req, res) => {
 export const updateTour = async (req, res) => {
   try {
     const { id } = req.params;
-    const tourData = req.body.tour ? JSON.parse(req.body.tour) : req.body;
+    
+    // Handle both form-data and JSON body
+    const body = req.body.tour ? JSON.parse(req.body.tour) : req.body;
+    
+    // Extract features and start_dates from the request
+    const features = [];
+    const startDates = [];
+    
+    // Handle features array
+    if (body.features) {
+      features.push(...(Array.isArray(body.features) ? body.features : [body.features]));
+    } else {
+      // Handle form-data array format (features[0], features[1], etc.)
+      Object.keys(req.body).forEach(key => {
+        if (key.startsWith('features[')) {
+          features.push(req.body[key]);
+        } else if (key.startsWith('start_dates[')) {
+          startDates.push(req.body[key]);
+        }
+      });
+    }
+    
+    // Prepare tour data
+    const tourData = {
+      title: body.title || req.body.title,
+      description: body.description || req.body.description,
+      destination: body.destination || req.body.destination,
+      price: parseFloat(body.price || req.body.price),
+      duration: parseInt(body.duration || req.body.duration, 10),
+      maxGroupSize: parseInt(body.max_group_size || body.maxGroupSize || req.body.max_group_size, 10),
+      difficulty: body.difficulty || req.body.difficulty,
+      highlights: body.highlights || req.body.highlights || '',
+      features: features.filter(Boolean),
+      startDates: startDates.length > 0 ? startDates : (body.start_dates || [])
+    };
 
-    // Find the tour
+    // Rest of the function remains the same...
     const tour = await Tour.findByPk(id);
     if (!tour) {
       return res.status(404).json({
@@ -178,67 +212,67 @@ export const updateTour = async (req, res) => {
     // Handle file upload if exists
     if (req.file) {
       const imageUrl = `/uploads/${req.file.filename}`;
-      if (!tourData.images) {
-        tourData.images = [];
-      }
-      tourData.images = [...tourData.images, imageUrl];
+      tourData.images = [...(tour.images || []), imageUrl];
     }
 
     // Update the tour
     await tour.update(tourData);
 
-    // Update features if provided
-    if (tourData.features) {
-      // Delete existing features
-      await TourFeature.destroy({ where: { tourId: id } });
-      
-      // Create new features
+    // Update features
+    await TourFeature.destroy({ where: { tour_id: id } });
+    if (features && features.length > 0) {
       await Promise.all(
-        tourData.features.map(feature =>
+        features.map(feature =>
           TourFeature.create({
             ...feature,
-            tourId: id
+            tour_id: id
           })
         )
       );
     }
 
-    // Update start dates if provided
-    if (tourData.startDates) {
-      // Delete existing start dates
-      await TourStartDate.destroy({ where: { tourId: id } });
-      
-      // Create new start dates
+    // Update start dates
+    if (tourData.startDates && tourData.startDates.length > 0) {
+      await TourStartDate.destroy({ where: { tour_id: id } });
       await Promise.all(
-        tourData.startDates.map(date =>
-          TourStartDate.create({
-            date,
-            tourId: id
-          })
-        )
+        tourData.startDates.map(date => {
+          // Ensure we have a valid date
+          const startDate = new Date(date);
+          if (isNaN(startDate.getTime())) {
+            throw new Error(`Invalid date format: ${date}`);
+          }
+          return TourStartDate.create({
+            start_date: startDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
+            tour_id: id
+          });
+        })
       );
     }
 
-    // Reload the tour with all associated data
+    // Get the updated tour with associations
     const updatedTour = await Tour.findByPk(id, {
-      include: [TourFeature, TourStartDate, TourImage]
+      include: [
+        { model: TourFeature, as: 'features' },
+        { model: TourStartDate, as: 'startDates' },
+        { model: TourImage, as: 'images' }
+      ]
     });
 
     res.status(200).json({
       success: true,
-      message: 'Tour updated successfully',
       data: updatedTour
     });
+
   } catch (error) {
     console.error('Error updating tour:', error);
     res.status(500).json({
       success: false,
       message: 'Error updating tour',
-      error: error.message
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 };
-
 // @desc    Delete tour (Admin only)
 // @route   DELETE /api/admin/tours/:id
 // @access  Private/Admin

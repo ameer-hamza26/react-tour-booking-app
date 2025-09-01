@@ -25,7 +25,13 @@ router.post(
   createTour
 );
 
-router.put('/:id', protect, authorize('admin'), updateTour);
+router.put(
+  '/:id', 
+  protect, 
+  authorize('admin'), 
+  multer.single('image'),  // Add this line
+  updateTour
+);
 router.delete('/:id', protect, authorize('admin'), withSequenceReset('tours', 'id'), deleteTour);
 
 export default router; 
