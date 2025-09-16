@@ -38,15 +38,22 @@ import {
   Delete as DeleteIcon,
   AdminPanelSettings as AdminIcon,
   Person as PersonIcon,
-  Block as BlockIcon
+  Block as BlockIcon,
+  TrendingUp as TrendingUpIcon
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
-import api from '../utils/axios';
+import { adminApi } from '../services/api';
 
 const AdminUsers = () => {
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
+  const [userStats, setUserStats] = useState({
+    totalUsers: 0,
+    adminUsers: 0,
+    regularUsers: 0,
+    newUsers: 0
+  });
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     role: 'all',
@@ -75,8 +82,17 @@ const AdminUsers = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/admin/users');
-      setUsers(response.data.data || []);
+      const [usersResponse, statsResponse] = await Promise.all([
+        adminApi.getAllUsers(),
+        adminApi.getUserStats()
+      ]);
+      setUsers(usersResponse.data || []);
+      setUserStats(statsResponse.data || {
+        totalUsers: 0,
+        adminUsers: 0,
+        regularUsers: 0,
+        newUsers: 0
+      });
     } catch (error) {
       console.error('Error fetching users:', error);
       setSnackbar({
@@ -101,8 +117,8 @@ const AdminUsers = () => {
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase();
       filtered = filtered.filter(user => 
-        user.firstName?.toLowerCase().includes(searchTerm) ||
-        user.lastName?.toLowerCase().includes(searchTerm) ||
+        user.first_name?.toLowerCase().includes(searchTerm) ||
+        user.last_name?.toLowerCase().includes(searchTerm) ||
         user.email?.toLowerCase().includes(searchTerm)
       );
     }
@@ -112,7 +128,7 @@ const AdminUsers = () => {
 
   const handleEditUser = async () => {
     try {
-      await api.patch(`/admin/users/${selectedUser._id}`, editForm);
+      await adminApi.updateUser(selectedUser.id, editForm);
       
       setSnackbar({
         open: true,
@@ -141,7 +157,7 @@ const AdminUsers = () => {
 
   const handleDeleteUser = async () => {
     try {
-      await api.delete(`/admin/users/${userToDelete._id}`);
+      await adminApi.deleteUser(userToDelete.id);
       
       setSnackbar({
         open: true,
@@ -165,8 +181,8 @@ const AdminUsers = () => {
   const openEditDialog = (user) => {
     setSelectedUser(user);
     setEditForm({
-      firstName: user.firstName || '',
-      lastName: user.lastName || '',
+      firstName: user.first_name || '',
+      lastName: user.last_name || '',
       email: user.email || '',
       role: user.role || 'user'
     });
@@ -240,6 +256,86 @@ const AdminUsers = () => {
         </Typography>
       </Box>
 
+      {/* Statistics Cards */}
+      <Grid container spacing={3} mb={3}>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Box display="flex" alignItems="center" justifyContent="space-between">
+                <Box>
+                  <Typography variant="h4" component="div" fontWeight="bold" color="primary.main">
+                    {userStats.totalUsers}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Total Users
+                  </Typography>
+                </Box>
+                <Avatar sx={{ bgcolor: 'primary.main', width: 56, height: 56 }}>
+                  <UserIcon />
+                </Avatar>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Box display="flex" alignItems="center" justifyContent="space-between">
+                <Box>
+                  <Typography variant="h4" component="div" fontWeight="bold" color="error.main">
+                    {userStats.adminUsers}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Admin Users
+                  </Typography>
+                </Box>
+                <Avatar sx={{ bgcolor: 'error.main', width: 56, height: 56 }}>
+                  <AdminIcon />
+                </Avatar>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Box display="flex" alignItems="center" justifyContent="space-between">
+                <Box>
+                  <Typography variant="h4" component="div" fontWeight="bold" color="success.main">
+                    {userStats.regularUsers}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Regular Users
+                  </Typography>
+                </Box>
+                <Avatar sx={{ bgcolor: 'success.main', width: 56, height: 56 }}>
+                  <PersonIcon />
+                </Avatar>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Box display="flex" alignItems="center" justifyContent="space-between">
+                <Box>
+                  <Typography variant="h4" component="div" fontWeight="bold" color="warning.main">
+                    {userStats.newUsers}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    New Users (30 days)
+                  </Typography>
+                </Box>
+                <Avatar sx={{ bgcolor: 'warning.main', width: 56, height: 56 }}>
+                  <TrendingUpIcon />
+                </Avatar>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
       {/* Filters */}
       <Paper sx={{ p: 3, mb: 3 }}>
         <Grid container spacing={2} alignItems="center">
@@ -270,7 +366,7 @@ const AdminUsers = () => {
           <Grid item xs={12} md={4}>
             <Box display="flex" gap={1}>
               <Typography variant="body2" color="text.secondary">
-                Total: {filteredUsers.length} users
+                Showing: {filteredUsers.length} users
               </Typography>
             </Box>
           </Grid>
@@ -293,18 +389,18 @@ const AdminUsers = () => {
             <TableBody>
               {filteredUsers.length > 0 ? (
                 filteredUsers.map((user) => (
-                  <TableRow key={user._id} hover>
+                  <TableRow key={user.id} hover>
                     <TableCell>
                       <Box display="flex" alignItems="center" gap={2}>
                         <Avatar sx={{ width: 40, height: 40 }}>
-                          {user.firstName ? user.firstName[0] : user.email[0]}
+                          {user.first_name ? user.first_name[0] : user.email[0]}
                         </Avatar>
                         <Box>
                           <Typography variant="body2" fontWeight="medium">
-                            {user.firstName} {user.lastName}
+                            {user.first_name} {user.last_name}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
-                            ID: {user._id.slice(-6)}
+                            ID: {user.id}
                           </Typography>
                         </Box>
                       </Box>
@@ -324,7 +420,7 @@ const AdminUsers = () => {
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2">
-                        {new Date(user.createdAt).toLocaleDateString()}
+                        {new Date(user.created_at).toLocaleDateString()}
                       </Typography>
                     </TableCell>
                     <TableCell>
@@ -334,7 +430,7 @@ const AdminUsers = () => {
                           variant="outlined"
                           startIcon={<EditIcon />}
                           onClick={() => openEditDialog(user)}
-                          disabled={user._id === currentUser?._id}
+                          disabled={user.id === currentUser?.id}
                         >
                           Edit
                         </Button>
@@ -344,7 +440,7 @@ const AdminUsers = () => {
                           color="error"
                           startIcon={<DeleteIcon />}
                           onClick={() => openDeleteDialog(user)}
-                          disabled={user._id === currentUser?._id}
+                          disabled={user.id === currentUser?.id}
                         >
                           Delete
                         </Button>
@@ -441,7 +537,7 @@ const AdminUsers = () => {
         <DialogTitle>Delete User</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to delete "{userToDelete?.firstName} {userToDelete?.lastName}"? 
+            Are you sure you want to delete "{userToDelete?.first_name} {userToDelete?.last_name}"? 
             This action cannot be undone and will remove all their data.
           </Typography>
         </DialogContent>

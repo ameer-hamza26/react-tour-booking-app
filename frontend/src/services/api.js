@@ -221,6 +221,105 @@ export const adminApi = {
     } catch (error) {
       throw error.response?.data || { message: 'Error fetching recent bookings' };
     }
+  },
+
+  // Get all bookings (admin only)
+  getAllBookings: async (filters = {}) => {
+    try {
+      const response = await api.get('/admin/bookings', { params: filters });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error fetching all bookings' };
+    }
+  },
+
+  // Get booking statistics (admin only)
+  getBookingStats: async () => {
+    try {
+      const response = await api.get('/admin/bookings/stats');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error fetching booking statistics' };
+    }
+  },
+
+  // Update booking status (admin only)
+  updateBookingStatus: async (bookingId, statusData) => {
+    try {
+      const response = await api.put(`/admin/bookings/${bookingId}/status`, statusData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error updating booking status' };
+    }
+  },
+
+  // Update user (admin only)
+  updateUser: async (userId, userData) => {
+    try {
+      const response = await api.patch(`/admin/users/${userId}`, userData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error updating user' };
+    }
+  },
+
+  // Delete user (admin only)
+  deleteUser: async (userId) => {
+    try {
+      const response = await api.delete(`/admin/users/${userId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error deleting user' };
+    }
+  },
+
+  // Admin tour management
+  // Get all tours (admin only)
+  getAllTours: async () => {
+    try {
+      const response = await api.get('/admin/tours');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error fetching tours' };
+    }
+  },
+
+  // Create tour (admin only)
+  createTour: async (formData) => {
+    try {
+      const response = await api.post('/admin/tours', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error creating tour' };
+    }
+  },
+
+  // Update tour (admin only)
+  updateTour: async (tourId, formData) => {
+    try {
+      const response = await api.put(`/admin/tours/${tourId}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error updating tour' };
+    }
+  },
+
+  // Delete tour (admin only)
+  deleteTour: async (tourId) => {
+    try {
+      const response = await api.delete(`/admin/tours/${tourId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error deleting tour' };
+    }
   }
 };
 

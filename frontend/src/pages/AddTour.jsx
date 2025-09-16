@@ -21,7 +21,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { tourApi } from '../services/api';
+import { adminApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 const AddTour = () => {
@@ -134,7 +134,7 @@ const AddTour = () => {
       
       try {
         // Send request to create tour
-        const response = await tourApi.createTour(formData);
+        const response = await adminApi.createTour(formData);
         
         if (response.success) {
           // Update loading toast to success

@@ -2,18 +2,71 @@ import { Tour, TourImage, TourStartDate, TourFeature } from '../model/index.js';
 import { Op } from 'sequelize';
 import sequelize from '../config/database.js';
 
-// @desc    Get all active tours
+// @desc    Get all active tours with optional filtering
 // @route   GET /api/tours
 // @access  Public
 export const getTours = async (req, res) => {
   try {
+    const { destination, minPrice, maxPrice, date } = req.query;
+    
+    // Build where clause for filtering
+    const whereClause = { is_active: true };
+    
+    // Filter by destination (case-insensitive)
+    if (destination && destination.trim() !== '') {
+      whereClause.destination = {
+        [Op.iLike]: `%${destination.trim()}%`
+      };
+    }
+    
+    // Filter by price range
+    if (minPrice || maxPrice) {
+      whereClause.price = {};
+      if (minPrice) {
+        whereClause.price[Op.gte] = parseFloat(minPrice);
+      }
+      if (maxPrice) {
+        whereClause.price[Op.lte] = parseFloat(maxPrice);
+      }
+    }
+    
+    // Filter by start date
+    let startDateFilter = null;
+    if (date && date.trim() !== '') {
+      startDateFilter = {
+        model: TourStartDate,
+        as: 'startDates',
+        where: {
+          start_date: {
+            [Op.gte]: new Date(date)
+          }
+        },
+        required: true
+      };
+    }
+    
+    // Build include array
+    const includeArray = [
+      { model: TourImage, as: 'images' },
+      { model: TourFeature, as: 'features' }
+    ];
+    
+    // Add start dates filter if needed
+    if (startDateFilter) {
+      includeArray.push(startDateFilter);
+    } else {
+      includeArray.push({ model: TourStartDate, as: 'startDates' });
+    }
+
+    console.log('Tour query filters:', {
+      whereClause,
+      startDateFilter: !!startDateFilter,
+      queryParams: req.query
+    });
+
     const tours = await Tour.findAll({
-      where: { is_active: true },
-      include: [
-        { model: TourImage, as: 'images' },
-        { model: TourStartDate, as: 'startDates' },
-        { model: TourFeature, as: 'features' }
-      ],
+      where: whereClause,
+      include: includeArray,
       order: [['created_at', 'DESC']]
     });
 
@@ -311,9 +364,47 @@ export const deleteTour = async (req, res) => {
 // @access  Private/Admin
 export const getAllTours = async (req, res) => {
   try {
+    const { destination, minPrice, maxPrice, isActive } = req.query;
+    
+    // Build where clause for filtering
+    const whereClause = {};
+    
+    // Filter by destination (case-insensitive)
+    if (destination && destination.trim() !== '') {
+      whereClause.destination = {
+        [Op.iLike]: `%${destination.trim()}%`
+      };
+    }
+    
+    // Filter by price range
+    if (minPrice || maxPrice) {
+      whereClause.price = {};
+      if (minPrice) {
+        whereClause.price[Op.gte] = parseFloat(minPrice);
+      }
+      if (maxPrice) {
+        whereClause.price[Op.lte] = parseFloat(maxPrice);
+      }
+    }
+    
+    // Filter by active status
+    if (isActive !== undefined) {
+      whereClause.is_active = isActive === 'true';
+    }
+
+    console.log('Admin tour query filters:', {
+      whereClause,
+      queryParams: req.query
+    });
+
     const tours = await Tour.findAll({
-      include: [TourFeature, TourStartDate, TourImage],
-      order: [['createdAt', 'DESC']]
+      where: whereClause,
+      include: [
+        { model: TourImage, as: 'images' },
+        { model: TourStartDate, as: 'startDates' },
+        { model: TourFeature, as: 'features' }
+      ],
+      order: [['created_at', 'DESC']]
     });
 
     res.status(200).json({

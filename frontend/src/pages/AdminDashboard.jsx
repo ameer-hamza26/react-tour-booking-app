@@ -27,7 +27,7 @@ import {
   TrendingDown as TrendingDownIcon
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
-import api from '../utils/axios';
+import { adminApi, tourApi } from '../services/api';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -49,22 +49,23 @@ const AdminDashboard = () => {
     try {
       setLoading(true);
       // Fetch dashboard statistics
-      const [toursRes, bookingsRes, usersRes] = await Promise.all([
-        api.get('/tours'),
-        api.get('/bookings'),
-        api.get('/admin/users')
+      const [toursRes, bookingStatsRes, userStatsRes, bookingsRes] = await Promise.all([
+        adminApi.getAllTours(),
+        adminApi.getBookingStats(),
+        adminApi.getUserStats(),
+        adminApi.getAllBookings({ limit: 5 })
       ]);
 
       setStats({
-        totalTours: toursRes.data.data?.length || 0,
-        totalBookings: bookingsRes.data.data?.length || 0,
-        totalUsers: usersRes.data.data?.length || 0,
-        totalRevenue: 0 // You can calculate this from bookings
+        totalTours: Array.isArray(toursRes.data) ? toursRes.data.length : toursRes.data?.data?.length || 0,
+        totalBookings: bookingStatsRes.data?.totalBookings || 0,
+        totalUsers: userStatsRes.data?.totalUsers || 0,
+        totalRevenue: bookingStatsRes.data?.totalRevenue || 0
       });
 
       // Get recent bookings
-      if (bookingsRes.data.data) {
-        setRecentBookings(bookingsRes.data.data.slice(0, 5));
+      if (bookingsRes.data) {
+        setRecentBookings(bookingsRes.data.slice(0, 5));
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -152,7 +153,7 @@ const AdminDashboard = () => {
         </Button>
       </Box>
         <Typography variant="h6" color="text.secondary">
-          Welcome back, {user?.firstName}! Here's what's happening with your tour booking system.
+          Welcome back, {user?.first_name}! Here's what's happening with your tour booking system.
         </Typography>
 
       {/* Statistics Cards */}
@@ -262,8 +263,8 @@ const AdminDashboard = () => {
                         </Avatar>
                       </ListItemIcon>
                       <ListItemText
-                        primary={`${booking.user?.firstName} ${booking.user?.lastName}`}
-                        secondary={`Booked ${booking.tour?.name} for ${new Date(booking.bookingDate).toLocaleDateString()}`}
+                        primary={`${booking.user?.first_name} ${booking.user?.last_name}`}
+                        secondary={`Booked ${booking.tour?.title} for ${new Date(booking.start_date).toLocaleDateString()}`}
                       />
                       <Chip 
                         label={booking.status} 

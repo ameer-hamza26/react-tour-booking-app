@@ -41,7 +41,7 @@ import {
   LocationOn as LocationOnIcon
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
-import { tourApi } from '../services/api';
+import { adminApi } from '../services/api';
 
 const AdminTours = () => {
   const navigate = useNavigate();
@@ -94,7 +94,7 @@ const AdminTours = () => {
   const fetchTours = async () => {
     try {
       setLoading(true);
-      const response = await tourApi.getTours();
+      const response = await adminApi.getAllTours();
       console.log('Tours API Response:', response); // Log the response
       setTours(response.data || []);
     } catch (error) {
@@ -109,7 +109,7 @@ const AdminTours = () => {
   const handleDeleteTour = async () => {
     const toastId = toast.loading('Deleting tour...');
     try {
-      await tourApi.deleteTour(tourToDelete.id);
+      await adminApi.deleteTour(tourToDelete.id);
       toast.update(toastId, {
         render: 'Tour deleted successfully',
         type: 'success',
@@ -284,11 +284,7 @@ const AdminTours = () => {
       }
       
       // Make the API call to update the tour
-      const response = await tourApi.updateTour(editingTour.id, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      const response = await adminApi.updateTour(editingTour.id, formData);
       
       // Show success message
       toast.update(toastId, {

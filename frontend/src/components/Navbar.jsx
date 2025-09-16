@@ -57,76 +57,130 @@ const Navbar = () => {
   const isAdmin = user?.role === 'admin';
 
   return (
-    <AppBar position="static" elevation={1} sx={{ backgroundColor: '#fff', color: 'text.primary' }}>
-      <Toolbar sx={{ justifyContent: 'space-between', minHeight: 70 }}>
+    <AppBar 
+      position="sticky" 
+      elevation={0} 
+      sx={{ 
+        background: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
+        color: 'text.primary'
+      }}
+    >
+      <Toolbar sx={{ justifyContent: 'space-between', minHeight: 80, px: { xs: 2, md: 4 } }}>
         {/* Logo */}
         <RouterLink to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-          <Typography 
-            component="span" 
-            sx={{ 
-              color: 'primary.main',
-              fontSize: 28,
-              fontWeight: 'bold',
-              fontFamily: 'inherit'
-            }}
-          >
-            Tour
-          </Typography>
-          <Typography 
-            component="span" 
-            sx={{ 
-              color: 'secondary.main',
-              fontSize: 28,
-              fontWeight: 'bold',
-              fontFamily: 'inherit'
-            }}
-          >
-            Bay
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
+                borderRadius: 2,
+                backgroundColor: '#2563eb',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontWeight: 'bold',
+                fontSize: '1.2rem',
+              }}
+            >
+              T
+            </Box>
+            <Typography 
+              component="span" 
+              sx={{ 
+                color: '#2563eb',
+                fontSize: 28,
+                fontWeight: 800,
+                fontFamily: 'inherit',
+                letterSpacing: '-0.5px'
+              }}
+            >
+              TourBay
+            </Typography>
+          </Box>
         </RouterLink>
 
         {/* Navigation Links - Desktop */}
-        <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 3, alignItems: 'center' }}>
+        <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 2, alignItems: 'center' }}>
           <RouterLink to="/tour" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <Button color="inherit" sx={{ textTransform: 'none', fontWeight: 500 }}>
+            <Button 
+              color="inherit" 
+              sx={{ 
+                textTransform: 'none', 
+                fontWeight: 600,
+                px: 3,
+                py: 1,
+                borderRadius: 2,
+                '&:hover': {
+                  backgroundColor: 'rgba(37, 99, 235, 0.08)',
+                  color: 'primary.main'
+                }
+              }}
+            >
               Tours
             </Button>
           </RouterLink>
           
           <RouterLink to="/exploreNow" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <Button color="inherit" sx={{ textTransform: 'none', fontWeight: 500 }}>
+            <Button 
+              color="inherit" 
+              sx={{ 
+                textTransform: 'none', 
+                fontWeight: 600,
+                px: 3,
+                py: 1,
+                borderRadius: 2,
+                '&:hover': {
+                  backgroundColor: 'rgba(37, 99, 235, 0.08)',
+                  color: 'primary.main'
+                }
+              }}
+            >
               Explore
             </Button>
           </RouterLink>
 
           {user && (
-            <div>
-              
-              
-              <RouterLink to="/bookings" style={{ textDecoration: 'none', color: 'inherit' }}>
-                <Button color="inherit" sx={{ textTransform: 'none', fontWeight: 500 }}>
-                  My Bookings
-                </Button>
-              </RouterLink>
-            </div>
+            <RouterLink to="/bookings" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <Button 
+                color="inherit" 
+                sx={{ 
+                  textTransform: 'none', 
+                  fontWeight: 600,
+                  px: 3,
+                  py: 1,
+                  borderRadius: 2,
+                  '&:hover': {
+                    backgroundColor: 'rgba(37, 99, 235, 0.08)',
+                    color: 'primary.main'
+                  }
+                }}
+              >
+                My Bookings
+              </Button>
+            </RouterLink>
           )}
 
           {isAdmin && (
             <RouterLink to="/admin" style={{ textDecoration: 'none', color: 'inherit' }}>
               <Button 
-                color="inherit" 
+                variant="contained"
                 sx={{ 
                   textTransform: 'none', 
-                  fontWeight: 500,
-                  backgroundColor: 'primary.main',
-                  color: 'white',
+                  fontWeight: 600,
+                  px: 3,
+                  py: 1,
+                  borderRadius: 2,
+                  backgroundColor: '#059669',
                   '&:hover': {
-                    backgroundColor: 'primary.dark'
+                    backgroundColor: '#047857',
                   }
                 }}
                 startIcon={<AdminIcon />}
               >
-                Admin
+                Admin Panel
               </Button>
             </RouterLink>
           )}
@@ -135,27 +189,64 @@ const Navbar = () => {
         {/* User Menu / Auth Buttons - Desktop */}
         <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 2 }}>
           {user ? (
-            <div>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Chip
                 icon={isAdmin ? <AdminIcon /> : <PersonIcon />}
-                label={isAdmin ? 'Admin' : 'User'}
-                color={isAdmin ? 'error' : 'primary'}
-                size="small"
-                variant="outlined"
+                label={isAdmin ? 'Administrator' : 'Customer'}
+                color={isAdmin ? 'secondary' : 'primary'}
+                size="medium"
+                sx={{
+                  fontWeight: 600,
+                  px: 1,
+                  '& .MuiChip-icon': {
+                    fontSize: '1rem'
+                  }
+                }}
               />
-              <IconButton
-                onClick={handleUserMenuOpen}
-                sx={{ p: 0 }}
-              >
-                <Avatar sx={{ width: 40, height: 40, bgcolor: 'primary.main' }}>
-                  {user.firstName ? user.firstName[0] : user.email[0]}
-                </Avatar>
-              </IconButton>
-            </div>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  {user.firstName} {user.lastName}
+                </Typography>
+                <IconButton
+                  onClick={handleUserMenuOpen}
+                  sx={{ 
+                    p: 0,
+                    '&:hover': {
+                      transform: 'scale(1.05)'
+                    }
+                  }}
+                >
+                  <Avatar 
+                    sx={{ 
+                      width: 44, 
+                      height: 44, 
+                      backgroundColor: isAdmin ? '#059669' : '#2563eb',
+                      fontWeight: 'bold',
+                      fontSize: '1.1rem'
+                    }}
+                  >
+                    {user.firstName ? user.firstName[0] : user.email[0]}
+                  </Avatar>
+                </IconButton>
+              </Box>
+            </Box>
           ) : (
-            <div>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <RouterLink to="/login" style={{ textDecoration: 'none', color: 'inherit' }}>
-                <Button color="inherit" sx={{ textTransform: 'none' }}>
+                <Button 
+                  color="inherit" 
+                  sx={{ 
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    px: 3,
+                    py: 1,
+                    borderRadius: 2,
+                    '&:hover': {
+                      backgroundColor: 'rgba(37, 99, 235, 0.08)',
+                      color: 'primary.main'
+                    }
+                  }}
+                >
                   Login
                 </Button>
               </RouterLink>
@@ -164,22 +255,37 @@ const Navbar = () => {
                   variant="contained" 
                   sx={{ 
                     textTransform: 'none',
-                    backgroundColor: 'primary.main',
+                    fontWeight: 600,
+                    px: 3,
+                    py: 1,
+                    borderRadius: 2,
+                    backgroundColor: '#2563eb',
                     '&:hover': {
-                      backgroundColor: 'primary.dark'
+                      backgroundColor: '#1d4ed8',
                     }
                   }}
                 >
                   Sign Up
                 </Button>
               </RouterLink>
-            </div>
+            </Box>
           )}
         </Box>
 
         {/* Mobile Menu Button */}
         <Box sx={{ display: { xs: 'block', md: 'none' } }}>
-          <IconButton color="inherit" onClick={handleMenuOpen}>
+          <IconButton 
+            color="inherit" 
+            onClick={handleMenuOpen}
+            sx={{
+              p: 1.5,
+              borderRadius: 2,
+              '&:hover': {
+                backgroundColor: 'rgba(37, 99, 235, 0.08)',
+                color: 'primary.main'
+              }
+            }}
+          >
             <MenuIcon />
           </IconButton>
         </Box>
@@ -189,7 +295,15 @@ const Navbar = () => {
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}
           onClose={handleMenuClose}
-          sx={{ display: { xs: 'block', md: 'none' } }}
+          sx={{ 
+            display: { xs: 'block', md: 'none' },
+            '& .MuiPaper-root': {
+              borderRadius: 3,
+              boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+              border: '1px solid rgba(226, 232, 240, 0.8)',
+              mt: 1
+            }
+          }}
         >
           <MenuItem onClick={handleMenuClose}>
             <RouterLink to="/tour" style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}>
@@ -281,21 +395,47 @@ const Navbar = () => {
           open={Boolean(userMenuAnchorEl)}
           onClose={handleUserMenuClose}
           PaperProps={{
-            sx: { minWidth: 200 }
+            sx: { 
+              minWidth: 280,
+              borderRadius: 3,
+              boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+              border: '1px solid rgba(226, 232, 240, 0.8)',
+              mt: 1
+            }
           }}
         >
-          <MenuItem onClick={handleUserMenuClose}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
-              <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
+          <MenuItem onClick={handleUserMenuClose} sx={{ py: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+              <Avatar 
+                sx={{ 
+                  width: 48, 
+                  height: 48, 
+                  background: isAdmin 
+                    ? 'linear-gradient(135deg, #059669 0%, #10b981 100%)'
+                    : 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
+                  boxShadow: isAdmin 
+                    ? '0 4px 15px rgba(5, 150, 105, 0.3)'
+                    : '0 4px 15px rgba(37, 99, 235, 0.3)',
+                  fontWeight: 'bold',
+                  fontSize: '1.2rem'
+                }}
+              >
                 {user?.firstName ? user.firstName[0] : user?.email[0]}
               </Avatar>
               <Box>
-                <Typography variant="body2" fontWeight="medium">
+                <Typography variant="body1" fontWeight="600" color="text.primary">
                   {user?.firstName} {user?.lastName}
                 </Typography>
-                <Typography variant="caption" color="text.secondary"> 
+                <Typography variant="body2" color="text.secondary"> 
                   {user?.email}
                 </Typography>
+                <Chip
+                  icon={isAdmin ? <AdminIcon /> : <PersonIcon />}
+                  label={isAdmin ? 'Administrator' : 'Customer'}
+                  color={isAdmin ? 'secondary' : 'primary'}
+                  size="small"
+                  sx={{ mt: 0.5, fontSize: '0.75rem' }}
+                />
               </Box>
             </Box>
           </MenuItem>
@@ -303,30 +443,85 @@ const Navbar = () => {
           <Divider />
           
           {isAdmin && (
-            <div>
-              <MenuItem onClick={() => { navigate('/admin'); handleUserMenuClose(); }}>
-                <DashboardIcon sx={{ mr: 1 }} />
-                Admin Dashboard
+            <Box>
+              <MenuItem 
+                onClick={() => { navigate('/admin'); handleUserMenuClose(); }}
+                sx={{ 
+                  borderRadius: 2, 
+                  mx: 1, 
+                  my: 0.5,
+                  '&:hover': {
+                    backgroundColor: 'rgba(5, 150, 105, 0.08)',
+                    color: 'secondary.main'
+                  }
+                }}
+              >
+                <DashboardIcon sx={{ mr: 2, color: 'secondary.main' }} />
+                <Typography fontWeight="500">Admin Dashboard</Typography>
               </MenuItem>
-              <MenuItem onClick={() => { navigate('/admin/tours'); handleUserMenuClose(); }}>
-                <TourIcon sx={{ mr: 1 }} />
-                Manage Tours
+              <MenuItem 
+                onClick={() => { navigate('/admin/tours'); handleUserMenuClose(); }}
+                sx={{ 
+                  borderRadius: 2, 
+                  mx: 1, 
+                  my: 0.5,
+                  '&:hover': {
+                    backgroundColor: 'rgba(5, 150, 105, 0.08)',
+                    color: 'secondary.main'
+                  }
+                }}
+              >
+                <TourIcon sx={{ mr: 2, color: 'secondary.main' }} />
+                <Typography fontWeight="500">Manage Tours</Typography>
               </MenuItem>
-              <MenuItem onClick={() => { navigate('/admin/bookings'); handleUserMenuClose(); }}>
-                <BookingIcon sx={{ mr: 1 }} />
-                Manage Bookings
+              <MenuItem 
+                onClick={() => { navigate('/admin/bookings'); handleUserMenuClose(); }}
+                sx={{ 
+                  borderRadius: 2, 
+                  mx: 1, 
+                  my: 0.5,
+                  '&:hover': {
+                    backgroundColor: 'rgba(5, 150, 105, 0.08)',
+                    color: 'secondary.main'
+                  }
+                }}
+              >
+                <BookingIcon sx={{ mr: 2, color: 'secondary.main' }} />
+                <Typography fontWeight="500">Manage Bookings</Typography>
               </MenuItem>
-              <MenuItem onClick={() => { navigate('/admin/users'); handleUserMenuClose(); }}>
-                <UserIcon sx={{ mr: 1 }} />
-                Manage Users
+              <MenuItem 
+                onClick={() => { navigate('/admin/users'); handleUserMenuClose(); }}
+                sx={{ 
+                  borderRadius: 2, 
+                  mx: 1, 
+                  my: 0.5,
+                  '&:hover': {
+                    backgroundColor: 'rgba(5, 150, 105, 0.08)',
+                    color: 'secondary.main'
+                  }
+                }}
+              >
+                <UserIcon sx={{ mr: 2, color: 'secondary.main' }} />
+                <Typography fontWeight="500">Manage Users</Typography>
               </MenuItem>
-              <Divider />
-            </div>
+              <Divider sx={{ my: 1 }} />
+            </Box>
           )}
           
-          <MenuItem onClick={handleLogout}>
-            <LogoutIcon sx={{ mr: 1 }} />
-            Logout
+          <MenuItem 
+            onClick={handleLogout}
+            sx={{ 
+              borderRadius: 2, 
+              mx: 1, 
+              my: 0.5,
+              '&:hover': {
+                backgroundColor: 'rgba(220, 38, 38, 0.08)',
+                color: 'error.main'
+              }
+            }}
+          >
+            <LogoutIcon sx={{ mr: 2, color: 'error.main' }} />
+            <Typography fontWeight="500">Logout</Typography>
           </MenuItem>
         </Menu>
       </Toolbar>

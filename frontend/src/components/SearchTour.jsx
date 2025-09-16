@@ -78,7 +78,17 @@ const SearchTour = ({ onSearch }) => {
       }
       try {
         const response = await tourApi.getTours({ destination: query });
-        const uniqueDestinations = [...new Set(response.data.map(tour => tour.destination))];
+        // Handle response format - the API returns { success: true, data: [...] }
+        let toursData = [];
+        if (response && response.success && Array.isArray(response.data)) {
+          toursData = response.data;
+        } else if (Array.isArray(response)) {
+          toursData = response;
+        } else if (response && Array.isArray(response.data)) {
+          toursData = response.data;
+        }
+        
+        const uniqueDestinations = [...new Set(toursData.map(tour => tour.destination))];
         setSuggestions(uniqueDestinations.slice(0, 5));
       } catch (err) {
         console.error('Error fetching suggestions:', err);
@@ -177,7 +187,10 @@ const SearchTour = ({ onSearch }) => {
       maxPrice: false
     });
     setError('');
-    onSearch([]);
+    setSuggestions([]);
+    setShowSuggestions(false);
+    // Call onSearch with empty object to fetch all tours
+    onSearch({});
   };
   
   const handleCloseError = () => {
@@ -214,7 +227,8 @@ const SearchTour = ({ onSearch }) => {
       const errorMessage = error.response?.data?.message || error.message || 'Error searching tours';
       setError(errorMessage);
       console.error('Error searching tours:', error);
-      onSearch([]);
+      // Call onSearch with empty object to fetch all tours on error
+      onSearch({});
     } finally {
       setIsLoading(false);
     }
@@ -346,31 +360,34 @@ const SearchTour = ({ onSearch }) => {
                   value={searchParams.startDate}
                   onChange={handleDateChange}
                   disablePast
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      fullWidth
-                      size="medium"
-                      placeholder="Select travel date"
-                      InputProps={{
-                        ...params.InputProps,
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <CalendarTodayIcon color="action" />
-                          </InputAdornment>
-                        ),
-                      }}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          backgroundColor: 'background.paper',
-                          borderRadius: 2,
-                          '&:hover fieldset': {
-                            borderColor: 'primary.light',
+                  enableAccessibleFieldDOMStructure={false}
+                  slots={{
+                    textField: (params) => (
+                      <TextField
+                        {...params}
+                        fullWidth
+                        size="medium"
+                        placeholder="Select travel date"
+                        InputProps={{
+                          ...params.InputProps,
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <CalendarTodayIcon color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            backgroundColor: 'background.paper',
+                            borderRadius: 2,
+                            '&:hover fieldset': {
+                              borderColor: 'primary.light',
+                            },
                           },
-                        },
-                      }}
-                    />
-                  )}
+                        }}
+                      />
+                    )
+                  }}
                 />
               </Grid>
               
@@ -489,32 +506,34 @@ const SearchTour = ({ onSearch }) => {
                 </Button>
                 
                 <Tooltip title="Clear all filters">
-                  <Button
-                    variant="outlined"
-                    color="secondary"
-                    onClick={handleClear}
-                    disabled={isLoading || !isSearchEnabled}
-                    startIcon={<ClearIcon />}
-                    size="large"
-                    sx={{
-                      py: 1.5,
-                      px: 3,
-                      borderRadius: 2,
-                      textTransform: 'none',
-                      fontWeight: 500,
-                      '&:hover': {
-                        backgroundColor: 'action.hover',
-                        transform: 'translateY(-2px)',
-                      },
-                      '&:active': {
-                        transform: 'translateY(0)',
-                      },
-                      transition: 'all 0.2s ease-in-out',
-                      minWidth: { xs: '100%', sm: 'auto' }
-                    }}
-                  >
-                    Clear
-                  </Button>
+                  <span>
+                    <Button
+                      variant="outlined"
+                      color="secondary"
+                      onClick={handleClear}
+                      disabled={isLoading || !isSearchEnabled}
+                      startIcon={<ClearIcon />}
+                      size="large"
+                      sx={{
+                        py: 1.5,
+                        px: 3,
+                        borderRadius: 2,
+                        textTransform: 'none',
+                        fontWeight: 500,
+                        '&:hover': {
+                          backgroundColor: 'action.hover',
+                          transform: 'translateY(-2px)',
+                        },
+                        '&:active': {
+                          transform: 'translateY(0)',
+                        },
+                        transition: 'all 0.2s ease-in-out',
+                        minWidth: { xs: '100%', sm: 'auto' }
+                      }}
+                    >
+                      Clear
+                    </Button>
+                  </span>
                 </Tooltip>
                 
                 <Tooltip title="Search by destination, date, or price range. Press Enter to search.">

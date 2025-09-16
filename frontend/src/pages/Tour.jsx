@@ -19,27 +19,38 @@ function Tour() {
       setLoading(true);
       setError(null);
       
-      // Prepare filters for the API
-      const apiFilters = {
-        destination: filters.destination || '',
-        minPrice: filters.minPrice || '',
-        maxPrice: filters.maxPrice || '',
-        date: filters.startDate ? new Date(filters.startDate).toISOString().split('T')[0] : ''
-      };
+      // Prepare filters for the API - only include non-empty values
+      const apiFilters = {};
+      
+      if (filters.destination && filters.destination.trim() !== '') {
+        apiFilters.destination = filters.destination.trim();
+      }
+      
+      if (filters.minPrice && filters.minPrice !== '') {
+        apiFilters.minPrice = filters.minPrice;
+      }
+      
+      if (filters.maxPrice && filters.maxPrice !== '') {
+        apiFilters.maxPrice = filters.maxPrice;
+      }
+      
+      if (filters.startDate) {
+        apiFilters.date = new Date(filters.startDate).toISOString().split('T')[0];
+      }
       
       console.log('Fetching tours with filters:', apiFilters);
       
       const response = await tourApi.getTours(apiFilters);
       console.log('Received tour data:', response);
       
-      // Handle different response formats
+      // Handle response format - the API returns { success: true, data: [...] }
       let toursData = [];
-      if (Array.isArray(response)) {
+      if (response && response.success && Array.isArray(response.data)) {
+        toursData = response.data;
+      } else if (Array.isArray(response)) {
         toursData = response;
       } else if (response && Array.isArray(response.data)) {
         toursData = response.data;
-      } else if (response && response.data && response.data.data) {
-        toursData = response.data.data;
       }
       
       console.log('Processed tours data:', toursData);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Container,
@@ -18,26 +18,40 @@ import {
   Select,
   MenuItem,
   Grid,
-  Card,
-  CardContent,
-  IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Alert,
   Snackbar,
-  Avatar
+  Avatar,
+  CircularProgress,
+  TablePagination,
+  Tooltip,
+  IconButton as MuiIconButton
 } from '@mui/material';
 import {
   BookOnline as BookingIcon,
   FilterList as FilterIcon,
   Visibility as ViewIcon,
+  Edit as EditIcon,
   CheckCircle as ConfirmIcon,
   Cancel as CancelIcon,
-  Person as PersonIcon
+  Person as PersonIcon,
+  Search as SearchIcon,
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
-import api from '../utils/axios';
+import { format } from 'date-fns';
+import { adminApi } from '../services/api';
+
+// Status options for the filter dropdown
+const statusOptions = [
+  { value: 'all', label: 'All Statuses' },
+  { value: 'pending', label: 'Pending', color: 'warning' },
+  { value: 'confirmed', label: 'Confirmed', color: 'success' },
+  { value: 'cancelled', label: 'Cancelled', color: 'error' },
+  { value: 'completed', label: 'Completed', color: 'info' }
+];
 
 const AdminBookings = () => {
   const [bookings, setBookings] = useState([]);
@@ -63,8 +77,8 @@ const AdminBookings = () => {
   const fetchBookings = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/bookings');
-      setBookings(response.data.data || []);
+      const response = await adminApi.getAllBookings();
+      setBookings(response.data || []);
     } catch (error) {
       console.error('Error fetching bookings:', error);
       setSnackbar({
@@ -89,10 +103,10 @@ const AdminBookings = () => {
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase();
       filtered = filtered.filter(booking => 
-        booking.user?.firstName?.toLowerCase().includes(searchTerm) ||
-        booking.user?.lastName?.toLowerCase().includes(searchTerm) ||
-        booking.tour?.name?.toLowerCase().includes(searchTerm) ||
-        booking.tour?.location?.toLowerCase().includes(searchTerm)
+        booking.user?.first_name?.toLowerCase().includes(searchTerm) ||
+        booking.user?.last_name?.toLowerCase().includes(searchTerm) ||
+        booking.tour?.title?.toLowerCase().includes(searchTerm) ||
+        booking.tour?.destination?.toLowerCase().includes(searchTerm)
       );
     }
 
@@ -101,7 +115,7 @@ const AdminBookings = () => {
 
   const handleStatusUpdate = async () => {
     try {
-      await api.patch(`/bookings/${selectedBooking._id}`, {
+      await adminApi.updateBookingStatus(selectedBooking.id, {
         status: newStatus
       });
       
@@ -242,7 +256,7 @@ const AdminBookings = () => {
             <TableBody>
               {filteredBookings.length > 0 ? (
                 filteredBookings.map((booking) => (
-                  <TableRow key={booking._id} hover>
+                  <TableRow key={booking.id} hover>
                     <TableCell>
                       <Box display="flex" alignItems="center" gap={1}>
                         <Avatar sx={{ width: 32, height: 32 }}>
@@ -250,7 +264,7 @@ const AdminBookings = () => {
                         </Avatar>
                         <Box>
                           <Typography variant="body2" fontWeight="medium">
-                            {booking.user?.firstName} {booking.user?.lastName}
+                            {booking.user?.first_name} {booking.user?.last_name}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
                             {booking.user?.email}
@@ -261,21 +275,21 @@ const AdminBookings = () => {
                     <TableCell>
                       <Box>
                         <Typography variant="body2" fontWeight="medium">
-                          {booking.tour?.name}
+                          {booking.tour?.title}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {booking.tour?.location}
+                          {booking.tour?.destination}
                         </Typography>
                       </Box>
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2">
-                        {new Date(booking.bookingDate).toLocaleDateString()}
+                        {new Date(booking.start_date).toLocaleDateString()}
                       </Typography>
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2">
-                        {booking.numberOfGuests} guests
+                        {booking.adults + booking.children} guests
                       </Typography>
                     </TableCell>
                     <TableCell>

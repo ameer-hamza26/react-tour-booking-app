@@ -10,6 +10,7 @@ import AddTour from './pages/AddTour';
 
 import Tour from './pages/Tour';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import TourDetailPage from './pages/TourDetailPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -27,7 +28,12 @@ import AdminUsers from './pages/AdminUsers';
 const App = () => {
   return (
     <AuthProvider>
-      <Router>
+      <Router
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true
+        }}
+      >
         <Navbar />
         <ToastContainer 
           position="top-center"
@@ -101,6 +107,7 @@ const App = () => {
           {/* 404 Route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <Footer />
       </Router>
     </AuthProvider>
   );

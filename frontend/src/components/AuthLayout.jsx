@@ -8,28 +8,26 @@ const AuthLayout = ({ title, subtitle, children }) => {
         minHeight: '100dvh',
         display: 'flex',
         alignItems: 'center',
-        bgcolor: (theme) => theme.palette.background.default,
-        backgroundImage: (theme) =>
-          `radial-gradient(40rem 20rem at -10% -10%, ${theme.palette.primary.light}22, transparent),
-           radial-gradient(40rem 20rem at 110% 110%, ${theme.palette.secondary.light}22, transparent)`,
+        backgroundColor: '#f8fafc',
+        py: { xs: 4, md: 6 }
       }}
     >
-      <Container maxWidth="sm" sx={{ py: { xs: 6, md: 8 } }}>
+      <Container maxWidth="sm" sx={{ py: { xs: 4, md: 6 } }}>
         <Paper
           elevation={0}
           sx={{
             p: { xs: 3, md: 4 },
-            borderRadius: 3,
-            boxShadow: '0 12px 32px rgba(0,0,0,0.08)',
-            backdropFilter: 'saturate(120%) blur(2px)'
+            borderRadius: 2,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            border: '1px solid #e5e7eb'
           }}
         >
           <Box sx={{ textAlign: 'center', mb: 3 }}>
-            <Typography variant="h4" fontWeight={700} gutterBottom>
+            <Typography variant="h4" fontWeight={700} gutterBottom sx={{ color: '#1f2937' }}>
               {title}
             </Typography>
             {subtitle && (
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" sx={{ color: '#6b7280' }}>
                 {subtitle}
               </Typography>
             )}
