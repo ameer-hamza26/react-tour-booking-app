@@ -1,4 +1,4 @@
-# TourBay - MERN Stack Tour Booking System
+# TourBay - PERN Stack Tour Booking System
 
 A full-stack tour booking application built with the MERN stack (MongoDB, Express.js, React.js, Node.js) featuring admin and user functionality with Material-UI design.
 
