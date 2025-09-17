@@ -8,7 +8,7 @@ const AuthLayout = ({ title, subtitle, children }) => {
         minHeight: '100dvh',
         display: 'flex',
         alignItems: 'center',
-        backgroundColor: '#f8fafc',
+        backgroundColor: '#ffffff',
         py: { xs: 4, md: 6 }
       }}
     >

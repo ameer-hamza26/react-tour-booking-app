@@ -88,7 +88,7 @@ let theme = createTheme({
         root: { 
           boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
           backgroundColor: '#ffffff',
-          borderBottom: '1px solid #e5e7eb'
+          borderBottom: '1px solid #f1f5f9'
         },
       },
     },
@@ -126,7 +126,7 @@ let theme = createTheme({
         root: { 
           borderRadius: 12, 
           boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-          border: '1px solid #e5e7eb',
+          border: '1px solid #f8fafc',
           transition: 'all 0.2s ease-in-out',
           '&:hover': {
             boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
@@ -139,7 +139,7 @@ let theme = createTheme({
         root: {
           borderRadius: 8,
           boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-          border: '1px solid #e5e7eb',
+          border: '1px solid #f8fafc',
         },
       },
     },

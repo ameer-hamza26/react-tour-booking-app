@@ -42,7 +42,7 @@ export const validateBooking = [
   body('paymentMethod')
     .notEmpty()
     .withMessage('Payment method is required')
-    .isIn(['credit_card', 'paypal', 'bank_transfer'])
+    .isIn(['credit_card', 'paypal', 'bank_transfer', 'stripe'])
     .withMessage('Invalid payment method'),
 
   // Contact info validation

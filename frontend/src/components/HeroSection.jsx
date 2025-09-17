@@ -16,7 +16,7 @@ const HeroSection = () => {
     <Box
       sx={{
         minHeight: '100vh',
-        backgroundColor: '#f8fafc',
+        backgroundColor: '#ffffff',
         position: 'relative',
         overflow: 'hidden',
         display: 'flex',
@@ -28,7 +28,7 @@ const HeroSection = () => {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(5, 150, 105, 0.05) 100%)',
+          background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.02) 0%, rgba(5, 150, 105, 0.02) 100%)',
           zIndex: 1
         }
       }}

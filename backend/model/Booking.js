@@ -66,11 +66,26 @@ const Booking = sequelize.define('Booking', {
     defaultValue: 'pending'
   },
   payment_method: {
-    type: DataTypes.ENUM('credit_card', 'paypal', 'bank_transfer'),
+    type: DataTypes.ENUM('credit_card', 'paypal', 'bank_transfer', 'stripe'),
     allowNull: false,
     validate: {
       notEmpty: { msg: 'Payment method is required' }
     }
+  },
+  stripe_payment_intent_id: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    comment: 'Stripe Payment Intent ID'
+  },
+  stripe_charge_id: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    comment: 'Stripe Charge ID'
+  },
+  stripe_customer_id: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    comment: 'Stripe Customer ID'
   },
   special_requests: {
     type: DataTypes.TEXT,

@@ -169,7 +169,7 @@ const HomePage = () => {
       </Container>
 
       {/* Stats Section */}
-      <Box sx={{ bgcolor: 'grey.50', py: 8 }}>
+      <Box sx={{py: 8 }}>
         <Container maxWidth="lg">
           <Grid container spacing={4} textAlign="center">
             <Grid item xs={12} sm={6} md={3}>

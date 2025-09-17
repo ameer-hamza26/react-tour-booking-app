@@ -26,6 +26,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { bookingApi, tourApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import StripePayment from './StripePayment';
 
 const steps = ['Tour Details', 'Personal Information', 'Payment', 'Confirmation'];
 
@@ -38,6 +39,8 @@ const BookingForm = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [totalPrice, setTotalPrice] = useState(0);
+  const [createdBooking, setCreatedBooking] = useState(null);
+  const [paymentCompleted, setPaymentCompleted] = useState(false);
 
   const {
     control,
@@ -92,6 +95,13 @@ const BookingForm = () => {
     if (e) {
       e.preventDefault();
     }
+    
+    // Prevent going to payment step (step 2) without completing previous steps
+    if (activeStep === 1 && !isValid) {
+      toast.error('Please fill in all required fields before proceeding');
+      return;
+    }
+    
     setActiveStep((prevStep) => prevStep + 1);
   };
 
@@ -306,55 +316,94 @@ const BookingForm = () => {
             <Typography variant="h6" gutterBottom>
               Payment Information
             </Typography>
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <Controller
-                  name="paymentMethod"
-                  control={control}
-                  rules={{ required: 'Payment method is required' }}
-                  render={({ field }) => (
-                    <FormControl fullWidth error={!!errors.paymentMethod}>
-                      <InputLabel>Payment Method</InputLabel>
-                      <Select {...field} label="Payment Method">
-                        <MenuItem value="credit_card">Credit Card</MenuItem>
-                        <MenuItem value="paypal">PayPal</MenuItem>
-                        <MenuItem value="bank_transfer">Bank Transfer</MenuItem>
-                      </Select>
-                      {errors.paymentMethod && (
-                        <Typography color="error" variant="caption">
-                          {errors.paymentMethod.message}
-                        </Typography>
-                      )}
-                    </FormControl>
-                  )}
-                />
+            
+            {/* Booking Summary */}
+            <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+              <Typography variant="subtitle1" gutterBottom>
+                Booking Summary
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <Typography variant="body2">Tour:</Typography>
+                  <Typography variant="body2">Start Date:</Typography>
+                  <Typography variant="body2">Adults:</Typography>
+                  <Typography variant="body2">Children:</Typography>
+                  <Typography variant="body2">Contact Email:</Typography>
+                  <Typography variant="body2">Contact Phone:</Typography>
+                  <Divider sx={{ my: 1 }} />
+                  <Typography variant="h6">Total Price:</Typography>
+                </Grid>
+                <Grid item xs={6} sx={{ textAlign: 'right' }}>
+                  <Typography variant="body2">{tour.title}</Typography>
+                  <Typography variant="body2">{startDate?.toLocaleDateString()}</Typography>
+                  <Typography variant="body2">{numberOfPeople.adults}</Typography>
+                  <Typography variant="body2">{numberOfPeople.children}</Typography>
+                  <Typography variant="body2">{user?.email || 'N/A'}</Typography>
+                  <Typography variant="body2">{watch('contactInfo.phone') || 'N/A'}</Typography>
+                  <Divider sx={{ my: 1 }} />
+                  <Typography variant="h6" color="primary">${totalPrice.toFixed(2)}</Typography>
+                </Grid>
               </Grid>
-              <Grid item xs={12}>
-                <Paper elevation={2} sx={{ p: 2 }}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    Booking Summary
-                  </Typography>
-                  <Grid container spacing={2}>
-                    <Grid item xs={6}>
-                      <Typography>Tour Price (per adult):</Typography>
-                      <Typography>Children's Price (30% off):</Typography>
-                      <Typography>Number of Adults:</Typography>
-                      <Typography>Number of Children:</Typography>
-                      <Divider sx={{ my: 1 }} />
-                      <Typography variant="h6">Total Price:</Typography>
-                    </Grid>
-                    <Grid item xs={6} sx={{ textAlign: 'right' }}>
-                      <Typography>${tour.price}</Typography>
-                      <Typography>${(tour.price * 0.7).toFixed(2)}</Typography>
-                      <Typography>{numberOfPeople.adults}</Typography>
-                      <Typography>{numberOfPeople.children}</Typography>
-                      <Divider sx={{ my: 1 }} />
-                      <Typography variant="h6">${totalPrice.toFixed(2)}</Typography>
-                    </Grid>
-                  </Grid>
-                </Paper>
-              </Grid>
-            </Grid>
+            </Paper>
+
+            {/* Payment Section */}
+            {!createdBooking ? (
+              <Box>
+                <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                  Click "Create Booking" to proceed with payment.
+                </Typography>
+                <Button
+                  variant="contained"
+                  size="large"
+                  fullWidth
+                  onClick={async () => {
+                    try {
+                      setLoading(true);
+                      const formData = {
+                        tourId: tourId,
+                        startDate: startDate instanceof Date ? startDate.toISOString() : startDate,
+                        numberOfPeople: {
+                          adults: numberOfPeople.adults,
+                          children: numberOfPeople.children
+                        },
+                        paymentMethod: 'stripe',
+                        specialRequests: watch('specialRequests') || '',
+                        contactInfo: {
+                          phone: watch('contactInfo.phone'),
+                          email: user?.email
+                        }
+                      };
+                      
+                      const response = await bookingApi.createBooking(formData);
+                      setCreatedBooking(response.data);
+                      toast.success('Booking created successfully! Proceed with payment.');
+                    } catch (error) {
+                      toast.error(error.message || 'Failed to create booking');
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  disabled={loading}
+                  sx={{ mb: 3 }}
+                >
+                  {loading ? <CircularProgress size={24} /> : 'Create Booking & Proceed to Payment'}
+                </Button>
+              </Box>
+            ) : (
+              <StripePayment
+                booking={createdBooking}
+                onPaymentSuccess={(paymentIntent) => {
+                  setPaymentCompleted(true);
+                  toast.success('Payment completed successfully!');
+                  setTimeout(() => {
+                    navigate(`/bookings/${createdBooking.id}`);
+                  }, 2000);
+                }}
+                onPaymentError={(error) => {
+                  toast.error('Payment failed. Please try again.');
+                }}
+              />
+            )}
           </Box>
         );
 
@@ -362,30 +411,83 @@ const BookingForm = () => {
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
-              Confirm Booking
+              Booking Confirmation
             </Typography>
-            <Paper elevation={2} sx={{ p: 3 }}>
-              <Typography variant="body1" paragraph>
-                Please review your booking details before confirming:
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Typography variant="subtitle1">Tour: {tour.title}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Start Date: {startDate?.toLocaleDateString()}
+            
+            {paymentCompleted ? (
+              <Box>
+                <Alert severity="success" sx={{ mb: 3 }}>
+                  🎉 Congratulations! Your booking has been confirmed and payment has been processed successfully.
+                </Alert>
+                
+                <Paper elevation={2} sx={{ p: 3 }}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    Booking Details
                   </Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                      <Typography variant="subtitle1">Tour: {tour.title}</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Start Date: {startDate?.toLocaleDateString()}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Number of Adults: {numberOfPeople.adults}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Number of Children: {numberOfPeople.children}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Total Price: ${totalPrice.toFixed(2)}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Payment Status: ✅ Paid
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Booking Status: ✅ Confirmed
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                </Paper>
+                
+                <Box sx={{ mt: 3, textAlign: 'center' }}>
                   <Typography variant="body2" color="text.secondary">
-                    Number of Adults: {numberOfPeople.adults}
+                    You will be redirected to your booking details shortly...
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Number of Children: {numberOfPeople.children}
+                </Box>
+              </Box>
+            ) : (
+              <Box>
+                <Alert severity="info" sx={{ mb: 3 }}>
+                  Please complete the payment to confirm your booking.
+                </Alert>
+                
+                <Paper elevation={2} sx={{ p: 3 }}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    Booking Summary
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Total Price: ${totalPrice.toFixed(2)}
-                  </Typography>
-                </Grid>
-              </Grid>
-            </Paper>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                      <Typography variant="subtitle1">Tour: {tour.title}</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Start Date: {startDate?.toLocaleDateString()}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Number of Adults: {numberOfPeople.adults}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Number of Children: {numberOfPeople.children}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Total Price: ${totalPrice.toFixed(2)}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Payment Status: ⏳ Pending
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                </Paper>
+              </Box>
+            )}
           </Box>
         );
 
@@ -458,7 +560,7 @@ const BookingForm = () => {
               <Button
                 variant="contained"
                 onClick={handleNext}
-                disabled={!isValid}
+                disabled={!isValid || activeStep === 2}
                 type="button"
                 sx={{
                   px: 3.5,
@@ -470,7 +572,7 @@ const BookingForm = () => {
                   }
                 }}
               >
-                Next
+                {activeStep === 2 ? 'Complete Payment First' : 'Next'}
               </Button>
             </Box>
           </div>

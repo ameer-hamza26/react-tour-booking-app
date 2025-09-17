@@ -323,10 +323,48 @@ export const adminApi = {
   }
 };
 
+// Payment API calls
+export const paymentApi = {
+  // Create payment intent
+  createPaymentIntent: async (bookingId) => {
+    try {
+      const response = await api.post('/payments/create-payment-intent', {
+        bookingId
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error creating payment intent' };
+    }
+  },
+
+  // Confirm payment
+  confirmPayment: async (paymentIntentId) => {
+    try {
+      const response = await api.post('/payments/confirm-payment', {
+        paymentIntentId
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error confirming payment' };
+    }
+  },
+
+  // Get payment status
+  getPaymentStatus: async (bookingId) => {
+    try {
+      const response = await api.get(`/payments/status/${bookingId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error getting payment status' };
+    }
+  }
+};
+
 // Export all API modules
 export default {
   tours: tourApi,
   bookings: bookingApi,
   auth: authApi,
-  admin: adminApi
+  admin: adminApi,
+  payments: paymentApi
 };

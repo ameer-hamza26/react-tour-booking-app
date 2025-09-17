@@ -5,6 +5,7 @@ import authRoutes from './routes/authRoutes.js';
 import tourRoutes from './routes/tours.js';
 import bookingRoutes from './routes/bookingRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
 import connectDB from './config/dbConnection.js';
 import errorHandler from './middleware/errorMiddleware.js';
 
@@ -33,6 +34,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/tours', tourRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

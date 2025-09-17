@@ -102,17 +102,10 @@ function Tour() {
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
-      <Box sx={{ textAlign: 'center', mb: 3 }}>
-        <Typography variant="h4" fontWeight={700} color="text.primary" gutterBottom>
-          Tour Destinations
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Find your perfect getaway from our curated list of tours.
-        </Typography>
-      </Box>
+    
 
       {/* Search Component */}
-      <Paper elevation={0} sx={{ p: 2, mb: 3, borderRadius: 3, boxShadow: '0 6px 18px rgba(0,0,0,0.06)' }}>
+      <Paper elevation={0} sx={{ p: 2, mb: 3, borderRadius: 2, boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #f8fafc' }}>
         <SearchTour onSearch={handleSearch} />
       </Paper>
 
@@ -138,7 +131,18 @@ function Tour() {
       >
         {tourList.map((tour) => (
           <Grid item xs={12} sm={6} md={4} key={tour.id ?? tour._id ?? `${tour.title}-${tour.price}`}>
-            <Card elevation={0} sx={{ height: '100%', borderRadius: 3, overflow: 'hidden', transition: 'transform 0.25s ease, box-shadow 0.25s ease', boxShadow: '0 8px 24px rgba(0,0,0,0.06)', '&:hover': { transform: 'translateY(-6px)', boxShadow: '0 12px 32px rgba(0,0,0,0.10)' } }}>
+            <Card elevation={0} sx={{ 
+              height: '100%', 
+              borderRadius: 2, 
+              overflow: 'hidden', 
+              transition: 'all 0.2s ease-in-out', 
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)', 
+              border: '1px solid #f8fafc',
+              '&:hover': { 
+                transform: 'translateY(-2px)', 
+                boxShadow: '0 4px 6px rgba(0,0,0,0.1)' 
+              } 
+            }}>
               <Link to={`/tour/${tour.id ?? tour._id}` } style={{ textDecoration: 'none', color: 'inherit' }}>
                 <CardMedia
                   component="img"
