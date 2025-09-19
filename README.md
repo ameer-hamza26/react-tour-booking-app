@@ -63,7 +63,7 @@ react-tour-booking-app/
 
 ### Prerequisites
 - Node.js (v16 or higher)
-- MongoDB Atlas account
+- postgresql account
 - Git
 
 ### Installation
@@ -189,5 +189,5 @@ This project is licensed under the MIT License.
 ## 🙏 Acknowledgments
 
 - Material-UI for the component library
-- MongoDB Atlas for database hosting
+- postgresql for database hosting
 - React community for excellent documentation 
