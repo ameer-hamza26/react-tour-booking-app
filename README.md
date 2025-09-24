@@ -190,4 +190,4 @@ This project is licensed under the MIT License.
 
 - Material-UI for the component library
 - postgresql for database hosting
-- React community for excellent documentation 
+- React community for excellent documentation  
