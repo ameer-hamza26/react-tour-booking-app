@@ -132,13 +132,11 @@ export const createTour = async (req, res) => {
     // Parse the tour data from the form
     const tourData = req.body.tour ? JSON.parse(req.body.tour) : req.body;
     
-    // If there's an uploaded file, add its path to the images array
+    // If there's an uploaded file, create TourImage record
     if (req.file) {
       const imageUrl = `/uploads/${req.file.filename}`;
-      if (!tourData.images) {
-        tourData.images = [];
-      }
-      tourData.images.push(imageUrl);
+      // Store the image URL for later creation
+      tourData.imageUrl = imageUrl;
     }
 
     // Check if a similar active tour already exists (case-insensitive by title + destination)
@@ -163,13 +161,21 @@ export const createTour = async (req, res) => {
     // Create the tour with the provided data
     const tour = await Tour.create(tourData);
 
+    // If there's an uploaded image, create TourImage record
+    if (tourData.imageUrl) {
+      await TourImage.create({
+        tour_id: tour.id,
+        url: tourData.imageUrl
+      });
+    }
+
     // If there are features, create them
     if (tourData.features && tourData.features.length > 0) {
       await Promise.all(
         tourData.features.map(feature =>
           TourFeature.create({
             ...feature,
-            tourId: tour.id
+            tour_id: tour.id
           })
         )
       );
@@ -180,8 +186,8 @@ export const createTour = async (req, res) => {
       await Promise.all(
         tourData.startDates.map(date =>
           TourStartDate.create({
-            date,
-            tourId: tour.id
+            start_date: date,
+            tour_id: tour.id
           })
         )
       );
@@ -265,7 +271,11 @@ export const updateTour = async (req, res) => {
     // Handle file upload if exists
     if (req.file) {
       const imageUrl = `/uploads/${req.file.filename}`;
-      tourData.images = [...(tour.images || []), imageUrl];
+      // Create new TourImage record for the uploaded file
+      await TourImage.create({
+        tour_id: id,
+        url: imageUrl
+      });
     }
 
     // Update the tour

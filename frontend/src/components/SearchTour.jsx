@@ -249,7 +249,7 @@ const SearchTour = ({ onSearch }) => {
           mb: 4,
           borderRadius: 3,
           background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.03)} 0%, ${alpha(theme.palette.secondary.main, 0.03)} 100%)`,
-          border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+          // border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
           overflow: 'visible'
         }}
       >

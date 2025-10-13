@@ -20,7 +20,29 @@ const TourImage = sequelize.define('TourImage', {
     allowNull: false,
     validate: {
       notEmpty: { msg: 'Image URL is required' },
-      isUrl: { msg: 'Please provide a valid URL' }
+      isValidPath(value) {
+        // Accept both full URLs and relative paths
+        if (!value || typeof value !== 'string') {
+          throw new Error('Image URL is required');
+        }
+        
+        // Check if it's a valid URL (starts with http/https)
+        if (value.startsWith('http://') || value.startsWith('https://')) {
+          try {
+            new URL(value);
+            return true;
+          } catch {
+            throw new Error('Please provide a valid URL');
+          }
+        }
+        
+        // Check if it's a valid relative path (starts with /)
+        if (value.startsWith('/')) {
+          return true;
+        }
+        
+        throw new Error('Please provide a valid URL or path');
+      }
     }
   }
 }, {

@@ -42,6 +42,7 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import { adminApi } from '../services/api';
+import { getFirstImageUrl } from '../utils/imageUtils';
 
 const AdminTours = () => {
   const navigate = useNavigate();
@@ -338,7 +339,7 @@ const AdminTours = () => {
       <Box 
         sx={{
           height: 160,
-          backgroundImage: `url(${tour.images?.[0]?.url || 'https://via.placeholder.com/400x200?text=No+Image'})`,
+          backgroundImage: `url(${getFirstImageUrl(tour.images)})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           position: 'relative',

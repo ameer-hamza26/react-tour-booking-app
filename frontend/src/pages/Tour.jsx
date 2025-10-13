@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, CardMedia, Grid, Typography, Box, CircularProgress, Alert, Button, Container, Paper } from '@mui/material';
 import SearchTour from '../components/SearchTour';
 import { tourApi } from '../services/api';
+import { getFirstImageUrl } from '../utils/imageUtils';
 
 function Tour() {
   const [tours, setTours] = useState([]);
@@ -105,7 +106,7 @@ function Tour() {
     
 
       {/* Search Component */}
-      <Paper elevation={0} sx={{ p: 2, mb: 3, borderRadius: 2, boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #f8fafc' }}>
+      <Paper elevation={0} sx={{ p: 2, mb: 3,  }}>
         <SearchTour onSearch={handleSearch} />
       </Paper>
 
@@ -146,7 +147,7 @@ function Tour() {
               <Link to={`/tour/${tour.id ?? tour._id}` } style={{ textDecoration: 'none', color: 'inherit' }}>
                 <CardMedia
                   component="img"
-                  image={tour.images?.[0]?.url || tour.images?.[0] || '/default-tour-image.jpg'}
+                  image={getFirstImageUrl(tour.images)}
                   alt={tour.title}
                   sx={{ height: 220, objectFit: 'cover' }}
                 />

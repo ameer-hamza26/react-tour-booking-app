@@ -24,6 +24,8 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminTours from "./pages/AdminTours";
 import AdminBookings from './pages/AdminBookings';
 import AdminUsers from './pages/AdminUsers';
+import Contact from './pages/Contact';
+import About from './pages/About';
 
 const App = () => {
   return (
@@ -52,6 +54,8 @@ const App = () => {
           <Route path="/exploreNow" element={<ExploreNow />} />
           <Route path="/tour" element={<Tour />} />
           <Route path="/tour/:tourId" element={<TourDetailPage />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 

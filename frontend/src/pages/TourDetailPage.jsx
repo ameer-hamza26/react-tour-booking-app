@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Grid, Typography, Card, CardMedia, Box ,CardContent,Button, Container, CircularProgress, Alert } from '@mui/material';
 import { tourApi } from '../services/api';
+import { getAllImageUrls } from '../utils/imageUtils';
 
 function TourDetailPage() {
   const { tourId } = useParams();
@@ -62,13 +63,13 @@ function TourDetailPage() {
 
       {/* Tour Images */}
       <Grid container spacing={4} justifyContent="center">
-        {(tour.images && tour.images.length > 0 ? tour.images : [tour.image || '/default-tour-image.jpg']).map((image, index) => (
+        {getAllImageUrls(tour.images).map((imageUrl, index) => (
           <Grid item xs={12} sm={6} md={4} key={index}>
             <Card elevation={6} style={{ borderRadius: '12px' }}>
               <CardMedia
                 component="img"
                 height="250"
-                image={image}
+                image={imageUrl}
                 alt={`${tour.title || tour.name} Image ${index + 1}`}
                 style={{ borderRadius: '12px', objectFit: 'cover' }}
               />

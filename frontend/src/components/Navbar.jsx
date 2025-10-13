@@ -142,6 +142,44 @@ const Navbar = () => {
             </Button>
           </RouterLink>
 
+          <RouterLink to="/about" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <Button 
+              color="inherit" 
+              sx={{ 
+                textTransform: 'none', 
+                fontWeight: 600,
+                px: 3,
+                py: 1,
+                borderRadius: 2,
+                '&:hover': {
+                  backgroundColor: 'rgba(37, 99, 235, 0.08)',
+                  color: 'primary.main'
+                }
+              }}
+            >
+              About Us
+            </Button>
+          </RouterLink>
+
+          <RouterLink to="/contact" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <Button 
+              color="inherit" 
+              sx={{ 
+                textTransform: 'none', 
+                fontWeight: 600,
+                px: 3,
+                py: 1,
+                borderRadius: 2,
+                '&:hover': {
+                  backgroundColor: 'rgba(37, 99, 235, 0.08)',
+                  color: 'primary.main'
+                }
+              }}
+            >
+              Contact
+            </Button>
+          </RouterLink>
+
           {user && (
             <RouterLink to="/bookings" style={{ textDecoration: 'none', color: 'inherit' }}>
               <Button 
@@ -317,6 +355,22 @@ const Navbar = () => {
             <RouterLink to="/exploreNow" style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}>
               <Button fullWidth sx={{ justifyContent: 'flex-start', textTransform: 'none' }}>
                 Explore
+              </Button>
+            </RouterLink>
+          </MenuItem>
+
+          <MenuItem onClick={handleMenuClose}>
+            <RouterLink to="/about" style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}>
+              <Button fullWidth sx={{ justifyContent: 'flex-start', textTransform: 'none' }}>
+                About Us
+              </Button>
+            </RouterLink>
+          </MenuItem>
+
+          <MenuItem onClick={handleMenuClose}>
+            <RouterLink to="/contact" style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}>
+              <Button fullWidth sx={{ justifyContent: 'flex-start', textTransform: 'none' }}>
+                Contact
               </Button>
             </RouterLink>
           </MenuItem>

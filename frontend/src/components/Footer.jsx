@@ -8,6 +8,7 @@ import {
   IconButton,
   Divider
 } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 import { 
   Facebook, 
   Twitter, 
@@ -68,7 +69,7 @@ const Footer = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Phone sx={{ color: '#2563eb', fontSize: '1.2rem' }} />
                 <Typography variant="body2" sx={{ color: '#6b7280' }}>
-                  +1 (555) 123-4567
+                  +923129240538
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -94,16 +95,16 @@ const Footer = () => {
               Quick Links
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              <Link href="/tours" sx={{ color: '#6b7280', textDecoration: 'none', '&:hover': { color: '#2563eb' } }}>
+              <Link component={RouterLink} to="/tour" sx={{ color: '#6b7280', textDecoration: 'none', '&:hover': { color: '#2563eb' } }}>
                 All Tours
               </Link>
-              <Link href="/exploreNow" sx={{ color: '#6b7280', textDecoration: 'none', '&:hover': { color: '#2563eb' } }}>
+              <Link component={RouterLink} to="/exploreNow" sx={{ color: '#6b7280', textDecoration: 'none', '&:hover': { color: '#2563eb' } }}>
                 Explore Now
               </Link>
-              <Link href="/about" sx={{ color: '#6b7280', textDecoration: 'none', '&:hover': { color: '#2563eb' } }}>
+              <Link component={RouterLink} to="/about" sx={{ color: '#6b7280', textDecoration: 'none', '&:hover': { color: '#2563eb' } }}>
                 About Us
               </Link>
-              <Link href="/contact" sx={{ color: '#6b7280', textDecoration: 'none', '&:hover': { color: '#2563eb' } }}>
+              <Link component={RouterLink} to="/contact" sx={{ color: '#6b7280', textDecoration: 'none', '&:hover': { color: '#2563eb' } }}>
                 Contact
               </Link>
             </Box>
